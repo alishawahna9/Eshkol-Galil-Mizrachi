@@ -1,0 +1,2 @@
+bot_name,welcome_message,is_active,database_type,database_url,bot_personality,id,created_date,updated_date,created_by_id,created_by,is_sample
+"עוזר גליל מזרחי","שלום! איך אוכל לעזור לך היום?","true","base44","","מקצועי, ידידותי ומסייע. אני כאן כדי לעזור למשתמשים למצוא מידע על אזור הגליל המזרחי.","69218b88fc58de84768cad12","2025-11-22T10:08:08.736000","2025-11-22T10:08:08.736000","691f59641fbcbe587b8e9865","galmitrani1@gmail.com","false"

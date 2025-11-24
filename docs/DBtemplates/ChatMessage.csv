@@ -1,0 +1,3 @@
+message,sender,session_id,user_email,id,created_date,updated_date,created_by_id,created_by,is_sample
+"ה","user","session_1763806098415_0.8188306972377121","galmitrani1@gmail.com","69218c18404c92ebe92313d4","2025-11-22T10:10:32.712000","2025-11-22T10:10:32.712000","691f59641fbcbe587b8e9865","galmitrani1@gmail.com","false"
+"מצטער, אני לא יכול לענות על השאלה הזו כרגע. אנא פנה למנהל המערכת.","bot","session_1763806098415_0.8188306972377121","galmitrani1@gmail.com","69218c1ab549716fd3d07a03","2025-11-22T10:10:34.340000","2025-11-22T10:10:34.340000","691f59641fbcbe587b8e9865","galmitrani1@gmail.com","false"
