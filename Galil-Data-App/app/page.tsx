@@ -13,7 +13,9 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table"
-
+import Header from "./site-header"
+import ButtonsGroup from "./buttonsGroup"
+import Tabs from "./QualityIndexTabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Progress } from "@/components/ui/progress"
 
@@ -33,8 +35,14 @@ const data = [
 const maxValue = Math.max(...data.map(d => d.value))
 
 export default function Home() {
-  return (
-    <main className="min-h-screen bg-slate-100 p-6 flex justify-center">
+  return ( 
+    
+    <>
+      <Header/>
+      <ButtonsGroup/>
+      <Tabs/>
+       <main className="min-h-screen bg-slate-100 p-6 flex justify-center">
+
       <Card className="w-full max-w-lg">
         <CardHeader>
           <CardTitle className="text-right">
@@ -43,7 +51,7 @@ export default function Home() {
         </CardHeader>
 
         <CardContent>
-          <ScrollArea className="h-[360px]">
+          <ScrollArea>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -82,5 +90,7 @@ export default function Home() {
         </CardContent>
       </Card>
     </main>
+    </>
+    
   )
 }
