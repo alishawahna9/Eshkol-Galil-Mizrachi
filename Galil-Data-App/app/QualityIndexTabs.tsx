@@ -1,4 +1,5 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import DomainFilter from "@/components/ui/DomainFilter"
 
 export default function TopTabs() {
 const triggerClass =
@@ -25,7 +26,17 @@ const triggerClass =
         </TabsList>
       </div>
 
-      <TabsContent value="explore" className="mt-6"> tehkor content</TabsContent>
+      <TabsContent value="explore" className="mt-6">
+        <div className="flex justify-between gap-8">
+          <div className="flex-1">
+            tehkor content
+          </div>
+
+          <div className="flex-1 flex justify-end">
+            <DomainFilter />
+          </div>
+        </div>
+      </TabsContent>
       <TabsContent value="compare" className="mt-6"> hshvah content</TabsContent>
       <TabsContent value="insights" className="mt-6">dkot content</TabsContent>
     </Tabs>
