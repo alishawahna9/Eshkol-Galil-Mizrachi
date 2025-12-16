@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardHeader, CardContent } from "@/components/ui/card"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { MetricSummaryPanel } from "./MetricSummaryPanel"
-import DomainFilter from "@/components/ui/DomainFilter"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import {useState} from "react";
+import {Card, CardHeader, CardContent} from "@/components/ui/card";
+import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
+import {MetricSummaryPanel} from "./MetricSummaryPanel";
+import DomainFilter from "@/app/dataexplorer/components/DomainFilter";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
 
 export function UnifiedSidePanel() {
-  const [tab, setTab] = useState<"metric" | "authorities">("metric")
+  const [tab, setTab] = useState<"metric" | "authorities">("metric");
 
   return (
     <Card className="h-fit" dir="rtl">
@@ -70,5 +70,5 @@ export function UnifiedSidePanel() {
         </Tabs>
       </CardContent>
     </Card>
-  )
+  );
 }

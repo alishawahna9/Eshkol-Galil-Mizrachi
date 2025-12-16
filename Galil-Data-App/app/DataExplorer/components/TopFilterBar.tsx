@@ -1,33 +1,30 @@
-"use client"
+"use client";
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { cn } from "@/lib/utils"
+import {Card, CardContent} from "@/components/ui/card";
+import {Tabs, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import {cn} from "@/lib/utils";
 
 const triggerClass = cn(
   "relative rounded-none bg-transparent px-3 py-2 text-sm text-muted-foreground shadow-none",
   "data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary",
   "data-[state=active]:after:absolute data-[state=active]:after:left-0 data-[state=active]:after:bottom-0",
   "data-[state=active]:after:h-[2px] data-[state=active]:after:w-full data-[state=active]:after:bg-primary"
-)
+);
 
-function FilterField({ label }: { label: string }) {
+function FilterField({label}: {label: string}) {
   return (
     <div className="grid grid-cols-[auto_minmax(160px,1fr)] items-center gap-4">
-      <span className="text-sm text-muted-foreground whitespace-nowrap">
-        {label}
-      </span>
+      <span className="text-sm text-muted-foreground whitespace-nowrap">{label}</span>
 
       <select
         dir="rtl"
-        className="h-10 w-full min-w-[160px] rounded-md border bg-background px-3 text-sm text-right outline-none focus:ring-2 focus:ring-ring"
-      >
+        className="h-10 w-full min-w-[160px] rounded-md border bg-background px-3 text-sm text-right outline-none focus:ring-2 focus:ring-ring">
         <option>הכל</option>
         <option>אפשרות 1</option>
         <option>אפשרות 2</option>
       </select>
     </div>
-  )
+  );
 }
 
 export default function TopFilterBar() {
@@ -85,5 +82,5 @@ export default function TopFilterBar() {
         </Card>
       </div>
     </section>
-  )
+  );
 }
