@@ -1,7 +1,7 @@
 "use client";
 
 import {MetricSummaryPanel} from "./MetricSummaryPanel";
-import DomainFilter from "@/app/dataexplorer/components/DomainFilter";
+import DomainFilter from "@/app/DataExplorer/components/DomainFilter";
 import {Card, CardHeader, CardTitle, CardContent} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
