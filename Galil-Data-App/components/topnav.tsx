@@ -40,9 +40,9 @@ export default function TopNav() {
           </Link>
 
           <Link
-            href="/dataexplorer"
+            href="/DataExplorer"
             className={`font-medium transition-colors ${
-              pathname === "/dataexplorer" ? "text-primary" : "text-foreground"
+              pathname === "/DataExplorer" ? "text-primary" : "text-foreground"
             } hover:text-primary`}
           >
             Data explorer
