@@ -11,7 +11,6 @@ export default function SideFilterPanel() {
   return (
     <div className="p-6">
       {/* RTL grid: ימין = פאנל, שמאל = תוכן */}
-      <div className="grid grid-cols-[360px_1fr] gap-6 items-start">
         {/* פאנל מאוחד – ימין */}
         <Card className="h-fit">
           <CardHeader>
@@ -76,8 +75,6 @@ export default function SideFilterPanel() {
         </Card>
 
         {/* תוכן גדול – שמאל */}
-        <div className="rounded-xl border bg-muted min-h-[600px]" />
       </div>
-    </div>
   );
 }

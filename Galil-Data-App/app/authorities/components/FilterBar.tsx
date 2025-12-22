@@ -1,75 +1,64 @@
-import { FilterDropdown } from "./FilterDropdown";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
 
-type Props = {
-  region: string;
-  onRegionChange: (v: string) => void;
-
-  compare: string;
-  onCompareChange: (v: string) => void;
-
-  valueType: string;
-  onValueTypeChange: (v: string) => void;
-
-  year: string;
-  onYearChange: (v: string) => void;
+export type FilterConfig = {
+  key: string;
+  value: string;
+  placeholder: string;
+  options: { value: string; label: string }[];
+  onChange: (v: string) => void;
+  width?: string;
 };
 
-export function FilterBar({
-  region,
-  onRegionChange,
-  compare,
-  onCompareChange,
-  valueType,
-  onValueTypeChange,
-  year,
-  onYearChange,
-}: Props) {
+type Props = {
+  filters: FilterConfig[];
+};
+
+export function FilterBar({ filters }: Props) {
   return (
-    <div className="flex flex-wrap items-center gap-3 border-b px-4 py-3" dir="rtl">
-      <FilterDropdown
-        placeholder="אזור"
-        value={region}
-        onChange={onRegionChange}
-        options={[
-          { value: "national", label: "ארצי" },
-          { value: "district", label: "מחוז" },
-          { value: "city", label: "עיר" },
-        ]}
-      />
+    <div className="flex flex-wrap items-center gap-3 px-4 py-3 w-full" dir="rtl">
+      {filters.map(filter => {
+        const label =
+          filter.options.find(o => o.value === filter.value)?.label ??
+          filter.placeholder;
 
-      <FilterDropdown
-        placeholder="נקודת השוואה"
-        value={compare}
-        onChange={onCompareChange}
-        width="w-[160px]"
-        options={[
-          { value: "none", label: "ללא השוואה" },
-          { value: "with", label: "עם השוואה" },
-        ]}
-      />
+        return (
+          <DropdownMenu key={filter.key}>
+            <DropdownMenuTrigger asChild>
+              <button
+                className={`flex items-center justify-between gap-2 rounded-md border bg-background px-3 py-1.5 text-sm ${
+                  filter.width ?? "w-[130px]"
+                }`}
+              >
+                <span className="truncate">{label}</span>
+                <ChevronDown className="size-4 opacity-60" />
+              </button>
+            </DropdownMenuTrigger>
 
-      <FilterDropdown
-        placeholder="סוג ערך"
-        value={valueType}
-        onChange={onValueTypeChange}
-        options={[
-          { value: "number", label: "מספר" },
-          { value: "percent", label: "אחוז" },
-          { value: "index", label: "מדד" },
-        ]}
-      />
-
-      <FilterDropdown
-        placeholder="שנה"
-        value={year}
-        onChange={onYearChange}
-        width="w-[90px]"
-        options={[
-          { value: "2024", label: "2024" },
-          { value: "2023", label: "2023" },
-          { value: "2022", label: "2022" },
-        ]}
-      />
+            <DropdownMenuContent align="start">
+              <DropdownMenuRadioGroup
+                value={filter.value}
+                onValueChange={filter.onChange}
+              >
+                {filter.options.map(opt => (
+                  <DropdownMenuRadioItem
+                    key={opt.value}
+                    value={opt.value}
+                  >
+                    {opt.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      })}
     </div>
   );
 }
