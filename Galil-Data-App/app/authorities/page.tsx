@@ -8,6 +8,7 @@ import AuthoritiesMap from "@/app/authorities/components/AuthoritiesMap";
 import AuthoritiesTable, {
   AuthorityRow,
 } from "@/app/authorities/components/AuthoritiesTable";
+import AuthorityTabs from "./components/AuthorityTabs";
 
 export default async function AuthoritiesPage({
   searchParams,
@@ -105,24 +106,9 @@ export default async function AuthoritiesPage({
                 />
               </FilterBarBox>
 
-              {/* ===== MAP + TABLE WRAPPER ===== */}
+              {/* ===== TABS (map / chart / trend / ...) ===== */}
               <div className="mt-6 max-w-[1100px]">
-                <div className="grid grid-cols-[520px_1fr] gap-4 h-[520px]">
-
-                                    {/* ===== TABLE WRAPPER ===== */}
-                  <div className="w-full h-full">
-                    <AuthoritiesTable
-                      title="פירוט רשויות"
-                      data={tableData}
-                    />
-                  </div>
-                  
-                  {/* ===== MAP WRAPPER ===== */}
-                  <div className="w-full h-full">
-                    <AuthoritiesMap />
-                  </div>
-
-                </div>
+                <AuthorityTabs tableData={tableData} />
               </div>
 
             </div>

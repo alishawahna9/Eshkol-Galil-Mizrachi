@@ -20,6 +20,9 @@ type Props = {
   tickStep?: number;
   className?: string;
   chartHeightClassName?: string;
+  yAxisPosition?: "left" | "right";
+  scrollable?: boolean;
+  noYScroll?: boolean;
 };
 
 function formatValue(v: number, kind: ValueKind, decimals: number) {
@@ -48,7 +51,12 @@ export default function BarChartCard({
   tickStep = 500,
   className,
   chartHeightClassName = "h-[520px] md:h-[600px]",
+  yAxisPosition = "left",
+  scrollable = false,
+  noYScroll = false,
 }: Props) {
+  const [hoveredLabel, setHoveredLabel] = React.useState<string | null>(null);
+  
   const d =
     typeof decimals === "number" ? decimals : valueKind === "percent" ? 1 : 0;
 
@@ -80,8 +88,8 @@ export default function BarChartCard({
   }
 
   return (
-    <Card dir="rtl" className={["w-full", className].filter(Boolean).join(" ")}>
-      <CardHeader className="space-y-1">
+    <Card dir="rtl" className={["w-full h-full flex flex-col", className].filter(Boolean).join(" ")}>
+      <CardHeader className="space-y-1 flex-shrink-0">
         <CardTitle className="text-base md:text-lg leading-snug">
           {title}
         </CardTitle>
@@ -90,75 +98,145 @@ export default function BarChartCard({
         )}
       </CardHeader>
 
-      <CardContent className="pt-2">
+      <CardContent className="pt-2 flex-1 flex flex-col">
         <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground mb-3">
           <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500" />
           <span>{seriesName}</span>
         </div>
 
-        <div className={["relative w-full", chartHeightClassName].join(" ")}>
-          {ticks.map((tick) => (
-            <div
-              key={tick}
-              className="absolute left-0 right-0 flex items-center"
-              style={{ bottom: `${(tick / safeMax) * 100}%` }}
-            >
-              <div className="w-16 text-[11px] text-muted-foreground text-left pr-2 tabular-nums">
-                {valueKind === "percent"
-                  ? `${tick}%`
-                  : tick.toLocaleString("he-IL")}
+        <div className={["relative flex-1 w-full", chartHeightClassName].join(" ")}>
+          {ticks.map((tick) => {
+            const bottomPct = `${(tick / safeMax) * 100}%`;
+            // Render label on left or right depending on yAxisPosition
+            return (
+              <div key={tick} className="absolute left-0 right-0 flex items-center" style={{ bottom: bottomPct }}>
+                {yAxisPosition === "left" ? (
+                  <>
+                    <div className="w-16 text-[11px] text-muted-foreground text-left pr-2 tabular-nums">
+                      {valueKind === "percent" ? `${tick}%` : tick.toLocaleString("he-IL")}
+                    </div>
+                    <div className="flex-1 border-t border-dashed border-muted-foreground/30" />
+                  </>
+                ) : (
+                  <>
+                    <div className="flex-1 border-t border-dashed border-muted-foreground/30" />
+                    <div className="w-16 text-[11px] text-muted-foreground text-right pl-2 tabular-nums">
+                      {valueKind === "percent" ? `${tick}%` : tick.toLocaleString("he-IL")}
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="flex-1 border-t border-dashed border-muted-foreground/30" />
-            </div>
-          ))}
+            );
+          })}
 
-          <div className="absolute inset-0 pr-16 pl-4">
-            <div className="h-full w-full flex items-end justify-center gap-10">
-              {rows.map((r) => {
-                const hPct = Math.max(
-                  0,
-                  Math.min(100, (r.value / safeMax) * 100)
-                );
+          <div className={"absolute inset-0 " + (yAxisPosition === "left" ? "pr-16 pl-4" : "pl-16 pr-4")}>
+            {scrollable ? (
+              <div className="h-full w-full overflow-x-auto">
+                <div className="h-full flex items-end justify-start gap-10 min-w-max pr-10 pl-10">
+                  {rows.map((r) => {
+                    const hPct = Math.max(
+                      0,
+                      Math.min(100, (r.value / safeMax) * 100)
+                    );
+                    const isHovered = hoveredLabel === r.label;
 
-                return (
-                  <div
-                    key={r.label}
-                    className="h-full flex flex-col items-center justify-end min-w-40"
-                  >
-                    <div className="mb-2 text-[11px] px-2 py-1 rounded-md bg-muted tabular-nums">
-                      {formatValue(r.value, valueKind, d)}
-                    </div>
-
-                    <div className="w-40 h-full flex items-end">
+                    return (
                       <div
-                        className="w-full rounded-t-md bg-blue-500"
-                        style={{ height: `${hPct}%` }}
-                        title={`${r.label}: ${formatValue(
-                          r.value,
-                          valueKind,
-                          d
-                        )}`}
-                      />
-                    </div>
+                        key={r.label}
+                        className="h-full flex flex-col items-center justify-end relative"
+                        onMouseEnter={() => setHoveredLabel(r.label)}
+                        onMouseLeave={() => setHoveredLabel(null)}
+                      >
+                        {isHovered && (
+                          <div className="absolute bottom-full mb-3 bg-slate-700 text-white text-xs rounded px-3 py-2 whitespace-nowrap z-10">
+                            {r.label}: {formatValue(r.value, valueKind, d)}
+                          </div>
+                        )}
 
-                    <div className="mt-3 text-xs text-muted-foreground text-center whitespace-nowrap">
-                      {r.label}
+                        <div className="mb-2 text-[11px] px-2 py-1 rounded-md bg-muted tabular-nums">
+                          {formatValue(r.value, valueKind, d)}
+                        </div>
+
+                        <div className="h-full flex items-end" style={{ width: "50px" }}>
+                          <div
+                            className="w-full rounded-t-md bg-blue-500 transition-opacity hover:opacity-80"
+                            style={{ height: `${hPct}%` }}
+                            title={`${r.label}: ${formatValue(
+                              r.value,
+                              valueKind,
+                              d
+                            )}`}
+                          />
+                        </div>
+
+                        <div className="mt-3 text-xs text-muted-foreground text-center whitespace-nowrap">
+                          {r.label}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="h-full w-full flex items-end justify-center gap-10">
+                {rows.map((r) => {
+                  const hPct = Math.max(
+                    0,
+                    Math.min(100, (r.value / safeMax) * 100)
+                  );
+                  const isHovered = hoveredLabel === r.label;
+
+                  return (
+                    <div
+                      key={r.label}
+                      className="h-full flex flex-col items-center justify-end relative"
+                      onMouseEnter={() => setHoveredLabel(r.label)}
+                      onMouseLeave={() => setHoveredLabel(null)}
+                    >
+                      {isHovered && (
+                        <div className="absolute bottom-full mb-3 bg-slate-700 text-white text-xs rounded px-3 py-2 whitespace-nowrap z-10">
+                          {r.label}: {formatValue(r.value, valueKind, d)}
+                        </div>
+                      )}
+
+                      <div className="mb-2 text-[11px] px-2 py-1 rounded-md bg-muted tabular-nums">
+                        {formatValue(r.value, valueKind, d)}
+                      </div>
+
+                      <div className="h-full flex items-end" style={{ width: "50px" }}>
+                        <div
+                          className="w-full rounded-t-md bg-blue-500 transition-opacity hover:opacity-80"
+                          style={{ height: `${hPct}%` }}
+                          title={`${r.label}: ${formatValue(
+                            r.value,
+                            valueKind,
+                            d
+                          )}`}
+                        />
+                      </div>
+
+                      <div className="mt-3 text-xs text-muted-foreground text-center whitespace-nowrap">
+                        {r.label}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {yLabel && (
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 -rotate-90 text-xs text-muted-foreground">
+            <div className={
+              "absolute top-1/2 -translate-y-1/2 -rotate-90 text-xs text-muted-foreground " +
+              (yAxisPosition === "left" ? "left-0 -translate-x-0" : "right-0 -translate-x-0")
+            }>
               {yLabel}
             </div>
           )}
         </div>
 
         {xLabel && (
-          <div className="mt-3 text-xs text-muted-foreground text-center">
+          <div className="mt-1 text-xs text-muted-foreground text-center flex-shrink-0">
             {xLabel}
           </div>
         )}
