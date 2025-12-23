@@ -1,7 +1,7 @@
-// components/ui/FilterDropdown.tsx
 "use client";
 
-import * as React from "react";
+import { useEffect, useRef, useState } from "react";
+import { Check, ChevronDown } from "lucide-react";
 
 type Option = { label: string; value: string };
 
@@ -10,8 +10,6 @@ type Props = {
   value: string;
   options: Option[];
   onChange: (v: string) => void;
-  placeholder?: string;
-  disabled?: boolean;
   className?: string;
 };
 
@@ -20,59 +18,99 @@ export default function FilterDropdown({
   value,
   options,
   onChange,
-  placeholder,
-  disabled,
   className,
 }: Props) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const selected = options.find((o) => o.value === value);
+
+  // close on outside click
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
   return (
     <div
+      ref={ref}
       dir="rtl"
-      className={["flex flex-col gap-2 w-full", className].filter(Boolean).join(" ")}
+      className={["relative w-full", className].filter(Boolean).join(" ")}
     >
-      {/* Label (mobile: centered, desktop: right aligned) */}
-      <div className="text-sm font-medium text-sky-600 dark:text-sky-400 text-center md:text-right">
+      {/* Label */}
+      <div className="mb-1 text-sm font-medium text-sky-600 text-center md:text-right">
         {label}
       </div>
 
-      <div className="relative w-full">
-        <select
-          value={value}
-          disabled={disabled}
-          onChange={(e) => onChange(e.target.value)}
+      {/* Trigger */}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="
+          w-full h-12
+          flex items-center justify-between
+          rounded-xl
+          border border-slate-200
+          bg-white
+          px-4
+          text-sm
+          shadow-sm
+          hover:bg-slate-50
+          focus:outline-none focus:ring-2 focus:ring-sky-300/60
+        "
+      >
+        <span className="truncate">
+          {selected ? selected.label : "בחר"}
+        </span>
+        <ChevronDown
+          className={`w-4 h-4 transition ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <div
           className="
+            absolute z-50 mt-2
             w-full
-            h-14 md:h-11
-            rounded-2xl md:rounded-xl
-            border
-            px-5
-            text-base md:text-sm
-            outline-none
-            appearance-none
-            transition
-            bg-white text-slate-900 border-slate-200
-            shadow-sm
-            focus:ring-2 focus:ring-sky-300/60
-            focus:border-sky-300
-            disabled:opacity-50 disabled:cursor-not-allowed
-            dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700
-            dark:shadow-none
-            dark:focus:ring-sky-500/25
-            dark:focus:border-sky-500/40
+            rounded-xl
+            border border-slate-200
+            bg-white
+            shadow-lg
+            overflow-hidden
           "
         >
-          {placeholder && <option value="">{placeholder}</option>}
-          {options.map((op) => (
-            <option key={op.value} value={op.value}>
-              {op.label}
-            </option>
-          ))}
-        </select>
-
-        {/* Chevron */}
-        <span className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg md:text-base">
-          ▾
-        </span>
-      </div>
+          {options.map((op) => {
+            const active = op.value === value;
+            return (
+              <button
+                key={op.value}
+                type="button"
+                onClick={() => {
+                  onChange(op.value);
+                  setOpen(false);
+                }}
+                className={`
+                  w-full
+                  flex items-center justify-between
+                  px-4 py-2
+                  text-sm
+                  hover:bg-sky-50
+                  ${active ? "bg-sky-100 font-medium" : ""}
+                `}
+              >
+                <span>{op.label}</span>
+                {active && <Check className="w-4 h-4 text-sky-600" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
