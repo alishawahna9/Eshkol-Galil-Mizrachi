@@ -1,8 +1,12 @@
 import TopNav from "@/components/topnav";
 import ChatBot from "@/components/chatbot";
-import SideFilterPanel from "./components/SideFilterPanel";
+
 import FilterDropdown from "@/components/FilterDropdownBuilder";
 import FilterBarBox from "@/components/FilterBarBox";
+import TrendChartCard from "@/components/ui/TrendChartCard";
+
+import SideFilterPanel from "./components/SideFilterPanel";
+import ComparisonChart from "./components/ComparisonChart";
 
 import AuthoritiesMap from "@/app/authorities/components/AuthoritiesMap";
 import AuthoritiesTable, {
@@ -32,10 +36,7 @@ export default async function AuthoritiesPage({
 
       {/* ===== GLOBAL OFFSET FROM HEADER ===== */}
       <div className="mt-6">
-        <div
-          dir="rtl"
-          className="grid grid-cols-[420px_1fr] gap-4 px-4"
-        >
+        <div dir="rtl" className="grid grid-cols-[420px_1fr] gap-4 px-4">
           {/* ===== SIDE FILTER PANEL ===== */}
           <aside>
             <SideFilterPanel />
@@ -45,7 +46,6 @@ export default async function AuthoritiesPage({
           <main>
             {/* ===== CONTENT WIDTH LIMIT ===== */}
             <div className="max-w-[1200px]">
-
               {/* ===== FILTER BAR ===== */}
               <FilterBarBox>
                 <FilterDropdown
@@ -111,6 +111,25 @@ export default async function AuthoritiesPage({
                 <AuthorityTabs tableData={tableData} />
               </div>
 
+              {/* ===== TOP CHART (Comparison) ===== */}
+              <div className="mt-6 max-w-[1100px]">
+                <ComparisonChart />
+              </div>
+
+              {/* ===== MAP + TABLE WRAPPER ===== */}
+              <div className="mt-6 max-w-[1100px]">
+                <div className="grid grid-cols-[520px_1fr] gap-4 h-[520px]">
+                  {/* ===== TABLE WRAPPER ===== */}
+                  <div className="w-full h-full">
+                    <AuthoritiesTable title="פירוט רשויות" data={tableData} />
+                  </div>
+
+                  {/* ===== MAP WRAPPER ===== */}
+                  <div className="w-full h-full">
+                    <AuthoritiesMap />
+                  </div>
+                </div>
+              </div>
             </div>
           </main>
         </div>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import AuthoritiesMap from "@/app/authorities/components/AuthoritiesMap";
 import AuthoritiesTable, { AuthorityRow } from "@/app/authorities/components/AuthoritiesTable";
 import MagamahUnified from "./MagamahUnified";
-import TrendChart from "./TrendChart";
+import TrendChartCard from "@/components/ui/TrendChartCard";
 import ComparisonChart from "./ComparisonChart";
 
 type Props = {
@@ -31,8 +31,41 @@ export default function AuthorityTabs({ tableData }: Props) {
           )}
 
           {active === "trend" && (
-            <div className="h-full flex items-center justify-center p-4">מקום לגרף או קומפוננטת מגמה (למשל: מגמה אחודה)</div>
-          )}
+          <div className="h-full w-full">
+            <TrendChartCard
+              className="h-full"
+              title="מגמת הרשויות שנבחרו במדד אוכלוסיה (אנשים) בשנים 2003 - 2023"
+              subtitle={'קובץ רשויות מקומיות, למ"ס'}
+              yLabel="אנשים"
+              xLabel="שנה"
+              series={[
+                {
+                  name: "מגדל שמס",
+                  points: [
+                    { x: 2003, y: 8400 },
+                    { x: 2005, y: 9000 },
+                    { x: 2010, y: 9800 },
+                    { x: 2015, y: 10600 },
+                    { x: 2020, y: 11300 },
+                    { x: 2023, y: 11150 },
+                  ],
+                },
+                {
+                  name: "בוקעאתא",
+                  points: [
+                    { x: 2003, y: 5200 },
+                    { x: 2005, y: 5400 },
+                    { x: 2010, y: 5900 },
+                    { x: 2015, y: 6300 },
+                    { x: 2020, y: 6700 },
+                    { x: 2023, y: 6850 },
+                  ],
+                },
+              ]}
+            />
+          </div>
+        )}
+
 
           {active === "trendUnified" && (
             <div className="h-full flex items-center justify-center p-4">

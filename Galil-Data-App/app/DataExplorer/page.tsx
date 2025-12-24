@@ -1,3 +1,4 @@
+//app/DataExplorer/page.tsx
 import SideFilterPanel from "@/app/authorities/components/SideFilterPanel";
 import ChatBot from "@/components/chatbot";
 import TopNav from "@/components/topnav";
