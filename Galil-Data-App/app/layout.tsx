@@ -1,6 +1,6 @@
 import type {Metadata} from "next";
-import {ThemeProvider} from "@/components/theme-provider";
 import {Geist, Geist_Mono} from "next/font/google";
+import {Providers} from "@/components/providers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,28 +18,12 @@ export const metadata: Metadata = {
   description: "East Galil Data App",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
-    <>
-      <html
-        lang="en"
-        data-arp=""
-        className="dark"
-        style={{scrollBehavior: "smooth", colorScheme: "root"}}>
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange>
-            {children}
-          </ThemeProvider>
-        </body>
-      </html>
-    </>
+    <html lang="he" dir="rtl" suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
   );
 }

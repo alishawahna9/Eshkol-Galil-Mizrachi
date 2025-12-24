@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import AuthoritiesMap from "@/app/authorities/components/AuthoritiesMap";
-import AuthoritiesTable, { AuthorityRow } from "@/app/authorities/components/AuthoritiesTable";
+import {useState} from "react";
+import AuthoritiesMap from "@/components/authorities/AuthoritiesMap";
+import AuthoritiesTable, {AuthorityRow} from "@//components/authorities/AuthoritiesTable";
 import MagamahUnified from "./MagamahUnified";
 import TrendChartCard from "@/components/ui/TrendChartCard";
 import ComparisonChart from "./ComparisonChart";
@@ -11,7 +11,7 @@ type Props = {
   tableData: AuthorityRow[];
 };
 
-export default function AuthorityTabs({ tableData }: Props) {
+export default function AuthorityTabs({tableData}: Props) {
   const [active, setActive] = useState<string>("map");
   return (
     <div dir="rtl">
@@ -31,41 +31,40 @@ export default function AuthorityTabs({ tableData }: Props) {
           )}
 
           {active === "trend" && (
-          <div className="h-full w-full">
-            <TrendChartCard
-              className="h-full"
-              title="מגמת הרשויות שנבחרו במדד אוכלוסיה (אנשים) בשנים 2003 - 2023"
-              subtitle={'קובץ רשויות מקומיות, למ"ס'}
-              yLabel="אנשים"
-              xLabel="שנה"
-              series={[
-                {
-                  name: "מגדל שמס",
-                  points: [
-                    { x: 2003, y: 8400 },
-                    { x: 2005, y: 9000 },
-                    { x: 2010, y: 9800 },
-                    { x: 2015, y: 10600 },
-                    { x: 2020, y: 11300 },
-                    { x: 2023, y: 11150 },
-                  ],
-                },
-                {
-                  name: "בוקעאתא",
-                  points: [
-                    { x: 2003, y: 5200 },
-                    { x: 2005, y: 5400 },
-                    { x: 2010, y: 5900 },
-                    { x: 2015, y: 6300 },
-                    { x: 2020, y: 6700 },
-                    { x: 2023, y: 6850 },
-                  ],
-                },
-              ]}
-            />
-          </div>
-        )}
-
+            <div className="h-full w-full">
+              <TrendChartCard
+                className="h-full"
+                title="מגמת הרשויות שנבחרו במדד אוכלוסיה (אנשים) בשנים 2003 - 2023"
+                subtitle={'קובץ רשויות מקומיות, למ"ס'}
+                yLabel="אנשים"
+                xLabel="שנה"
+                series={[
+                  {
+                    name: "מגדל שמס",
+                    points: [
+                      {x: 2003, y: 8400},
+                      {x: 2005, y: 9000},
+                      {x: 2010, y: 9800},
+                      {x: 2015, y: 10600},
+                      {x: 2020, y: 11300},
+                      {x: 2023, y: 11150},
+                    ],
+                  },
+                  {
+                    name: "בוקעאתא",
+                    points: [
+                      {x: 2003, y: 5200},
+                      {x: 2005, y: 5400},
+                      {x: 2010, y: 5900},
+                      {x: 2015, y: 6300},
+                      {x: 2020, y: 6700},
+                      {x: 2023, y: 6850},
+                    ],
+                  },
+                ]}
+              />
+            </div>
+          )}
 
           {active === "trendUnified" && (
             <div className="h-full flex items-center justify-center p-4">
@@ -80,7 +79,9 @@ export default function AuthorityTabs({ tableData }: Props) {
           )}
 
           {active === "tableDownload" && (
-            <div className="h-full flex items-center justify-center p-4">Placeholder: טבלה והורדה</div>
+            <div className="h-full flex items-center justify-center p-4">
+              Placeholder: טבלה והורדה
+            </div>
           )}
         </div>
       </div>
@@ -93,8 +94,7 @@ export default function AuthorityTabs({ tableData }: Props) {
             active === "map"
               ? "bg-sky-400 text-white shadow-md"
               : "bg-white border border-slate-200 text-slate-700"
-          }`}
-        >
+          }`}>
           מפה
         </button>
 
@@ -104,8 +104,7 @@ export default function AuthorityTabs({ tableData }: Props) {
             active === "chart"
               ? "bg-sky-400 text-white shadow-md"
               : "bg-white border border-slate-200 text-slate-700"
-          }`}
-        >
+          }`}>
           גרף
         </button>
 
@@ -115,8 +114,7 @@ export default function AuthorityTabs({ tableData }: Props) {
             active === "trend"
               ? "bg-sky-400 text-white shadow-md"
               : "bg-white border border-slate-200 text-slate-700"
-          }`}
-        >
+          }`}>
           מגמה
         </button>
 
@@ -126,8 +124,7 @@ export default function AuthorityTabs({ tableData }: Props) {
             active === "trendUnified"
               ? "bg-sky-400 text-white shadow-md"
               : "bg-white border border-slate-200 text-slate-700"
-          }`}
-        >
+          }`}>
           מגמה אחודה
         </button>
 
@@ -137,12 +134,10 @@ export default function AuthorityTabs({ tableData }: Props) {
             active === "tableDownload"
               ? "bg-sky-400 text-white shadow-md"
               : "bg-white border border-slate-200 text-slate-700"
-          }`}
-        >
+          }`}>
           טבלה והורדה
         </button>
       </div>
     </div>
   );
 }
-
