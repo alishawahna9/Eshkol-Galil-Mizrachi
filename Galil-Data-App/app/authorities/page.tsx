@@ -45,7 +45,7 @@ export default async function AuthoritiesPage({
           {/* ===== MAIN CONTENT ===== */}
           <main>
             {/* ===== CONTENT WIDTH LIMIT ===== */}
-            <div className="max-w-300">
+            <div className="pt-6 max-w-300">
               {/* ===== FILTER BAR ===== */}
               <FilterBarBox>
                 <FilterDropdownMenu
