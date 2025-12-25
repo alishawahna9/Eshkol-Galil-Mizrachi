@@ -1,15 +1,17 @@
 import TopNav from "@/components/topnav";
 import ChatBot from "@/components/chatbot";
 
-import {FilterDropdownMenu} from "@/components/FilterDropdownBuilder";
+import { FilterDropdownMenu } from "@/components/FilterDropdownBuilder";
 import FilterBarBox from "@/components/FilterBarBox";
 import TrendChartCard from "@/components/ui/TrendChartCard";
 
-import {SideFilterPanel} from "@/components/authorities/SideFilterPanel";
+import { SideFilterPanel } from "@/components/authorities/SideFilterPanel";
 import ComparisonChart from "@/components/authorities/ComparisonChart";
 
 import AuthoritiesMap from "@/components/authorities/AuthoritiesMap";
-import AuthoritiesTable, {AuthorityRow} from "@/components/authorities/AuthoritiesTable";
+import AuthoritiesTable, {
+  AuthorityRow,
+} from "@/components/authorities/AuthoritiesTable";
 import AuthorityTabs from "../../components/authorities/AuthorityTabs";
 
 export default async function AuthoritiesPage({
@@ -21,11 +23,11 @@ export default async function AuthoritiesPage({
 
   // ===== TABLE DATA (mock – later from server) =====
   const tableData: AuthorityRow[] = [
-    {name: "צפת", value: 39179},
-    {name: "קרית שמונה", value: 24254},
-    {name: "גולן", value: 21484},
-    {name: "הגליל העליון", value: 20881},
-    {name: "מרום הגליל", value: 16846},
+    { name: "צפת", value: 39179 },
+    { name: "קרית שמונה", value: 24254 },
+    { name: "גולן", value: 21484 },
+    { name: "הגליל העליון", value: 20881 },
+    { name: "מרום הגליל", value: 16846 },
   ];
 
   return (
@@ -52,9 +54,9 @@ export default async function AuthoritiesPage({
                   value={params.area ?? ""}
                   placeholder="ארצי"
                   options={[
-                    {label: "ארצי", value: "national"},
-                    {label: "צפון", value: "north"},
-                    {label: "מרכז", value: "center"},
+                    { label: "ארצי", value: "national" },
+                    { label: "צפון", value: "north" },
+                    { label: "מרכז", value: "center" },
                   ]}
                 />
 
@@ -64,8 +66,8 @@ export default async function AuthoritiesPage({
                   value={params.compareType ?? ""}
                   placeholder="ללא השוואה"
                   options={[
-                    {label: "מול תקופה קודמת", value: "previous"},
-                    {label: "מול יעד", value: "target"},
+                    { label: "מול תקופה קודמת", value: "previous" },
+                    { label: "מול יעד", value: "target" },
                   ]}
                 />
 
@@ -76,8 +78,8 @@ export default async function AuthoritiesPage({
                   placeholder="ללא נקודת השוואה"
                   disabled={!params.compareType}
                   options={[
-                    {label: "חודש קודם", value: "prev-month"},
-                    {label: "שנה קודמת", value: "prev-year"},
+                    { label: "חודש קודם", value: "prev-month" },
+                    { label: "שנה קודמת", value: "prev-year" },
                   ]}
                 />
 
@@ -87,8 +89,8 @@ export default async function AuthoritiesPage({
                   value={params.valueType ?? "number"}
                   placeholder="מספרי"
                   options={[
-                    {label: "מספרי", value: "number"},
-                    {label: "אחוזי", value: "percent"},
+                    { label: "מספרי", value: "number" },
+                    { label: "אחוזי", value: "percent" },
                   ]}
                 />
 
@@ -97,9 +99,9 @@ export default async function AuthoritiesPage({
                   param="year"
                   value={params.year ?? "2024"}
                   options={[
-                    {label: "2022", value: "2022"},
-                    {label: "2023", value: "2023"},
-                    {label: "2024", value: "2024"},
+                    { label: "2022", value: "2022" },
+                    { label: "2023", value: "2023" },
+                    { label: "2024", value: "2024" },
                   ]}
                 />
               </FilterBarBox>
@@ -107,26 +109,6 @@ export default async function AuthoritiesPage({
               {/* ===== TABS (map / chart / trend / ...) ===== */}
               <div className="mt-6 max-w-275">
                 <AuthorityTabs tableData={tableData} />
-              </div>
-
-              {/* ===== TOP CHART (Comparison) ===== */}
-              <div className="mt-6 max-w-275">
-                <ComparisonChart />
-              </div>
-
-              {/* ===== MAP + TABLE WRAPPER ===== */}
-              <div className="mt-6 max-w-275">
-                <div className="grid grid-cols-[520px_1fr] gap-4 h-130">
-                  {/* ===== TABLE WRAPPER ===== */}
-                  <div className="w-full h-full">
-                    <AuthoritiesTable title="פירוט רשויות" data={tableData} />
-                  </div>
-
-                  {/* ===== MAP WRAPPER ===== */}
-                  <div className="w-full h-full">
-                    <AuthoritiesMap />
-                  </div>
-                </div>
               </div>
             </div>
           </main>

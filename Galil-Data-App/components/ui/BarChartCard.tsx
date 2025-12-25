@@ -1,202 +1,155 @@
-// components/ui/BarChartCard.tsx
 "use client";
 
-import * as React from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import React from "react";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+  Legend,
+  type ChartOptions,
+  type ChartData,
+  type Tick,
+} from "chart.js";
+import { Bar } from "react-chartjs-2";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-type BarRow = { label: string; value: number };
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
+
 type ValueKind = "number" | "percent";
+type Row = { label: string; value: number };
 
-type Props = {
-  title: string;
-  subtitle?: string;
-  xLabel?: string;
-  yLabel?: string;
-  seriesName?: string;
-  rows: BarRow[];
-  valueKind?: ValueKind;
-  decimals?: number;
-  maxY?: number;
-  tickStep?: number;
-  className?: string;
-  chartHeightClassName?: string;
-  yAxisPosition?: "left" | "right";
-  scrollable?: boolean;
-};
-
-function formatValue(v: number, kind: ValueKind, decimals: number) {
-  const fixed = v.toFixed(decimals);
-  return kind === "percent" ? `${fixed}%` : fixed;
+function formatNumber(n: number, decimals: number) {
+  return n.toLocaleString(undefined, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
 }
 
 function buildNumberTicks(max: number, step: number) {
-  const safeStep = step > 0 ? step : 1;
-  const top = Math.ceil(max / safeStep) * safeStep;
+  const safeMax = Math.max(0, max);
+  const safeStep = Math.max(1, step);
+  const top = Math.ceil(safeMax / safeStep) * safeStep || safeStep;
+
   const ticks: number[] = [];
   for (let t = 0; t <= top; t += safeStep) ticks.push(t);
-  return { ticks, top };
+
+  return { top, ticks };
 }
+
+type Props = {
+  title: string;
+  rows: Row[];
+  valueKind: ValueKind; // "number" | "percent"
+  tickStep: number;
+  yLabel: string;
+  xLabel: string;
+};
 
 export default function BarChartCard({
   title,
-  subtitle,
-  xLabel,
-  yLabel,
-  seriesName = "Total",
   rows,
-  valueKind = "percent",
-  decimals,
-  maxY,
-  tickStep = 500,
-  className,
-  chartHeightClassName = "h-[520px] md:h-[600px]",
-  yAxisPosition = "left",
-  scrollable = false,
+  valueKind,
+  tickStep,
+  yLabel,
+  xLabel,
 }: Props) {
-  const [hoveredLabel, setHoveredLabel] = React.useState<string | null>(null);
+  const labels = rows.map((r) => r.label);
+  const values = rows.map((r) => r.value);
 
-  const d =
-    typeof decimals === "number" ? decimals : valueKind === "percent" ? 1 : 0;
+  const decimals = valueKind === "percent" ? 1 : 0;
+  const suffix = valueKind === "percent" ? "%" : "";
 
-  const dataMax = Math.max(0, ...rows.map((r) => r.value));
+  const dataMax = Math.max(0, ...values);
 
-  // default max
-  let safeMax =
-    typeof maxY === "number"
-      ? maxY
-      : valueKind === "percent"
-      ? 100
-      : Math.max(1, dataMax * 1.15);
+  // Percent -> fixed 100, Number -> aligned to tick top
+  let safeMax = valueKind === "percent" ? 100 : Math.max(1, dataMax * 1.15);
 
-  // ticks
   let ticks: number[] =
-    valueKind === "percent"
-      ? [0, 20, 40, 60, 80, 100]
-      : Array.from({ length: 6 }, (_, i) => Math.round((safeMax * i) / 5));
+    valueKind === "percent" ? [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100] : [];
 
-  // if number chart -> use step ticks like 500
   if (valueKind === "number") {
-    const built = buildNumberTicks(typeof maxY === "number" ? maxY : dataMax, tickStep);
+    const built = buildNumberTicks(dataMax, tickStep);
     ticks = built.ticks;
-    if (typeof maxY !== "number") safeMax = built.top;
+    safeMax = built.top;
   }
 
-  const renderBar = (r: BarRow) => {
-    const hPct = Math.max(0, Math.min(100, (r.value / safeMax) * 100));
-    const isHovered = hoveredLabel === r.label;
+  const data: ChartData<"bar"> = {
+    labels,
+    datasets: [
+      {
+        label: "Series",
+        data: values,
+        backgroundColor: "rgba(92, 200, 231, 1)",
+        borderRadius: 8,
+        borderSkipped: false,
+        maxBarThickness: 100,
+        barPercentage: 0.7,
+        categoryPercentage: 0.8,
+      },
+    ],
+  };
 
-    return (
-      <div
-        key={r.label}
-        className="h-full flex flex-col items-center justify-end relative"
-        onMouseEnter={() => setHoveredLabel(r.label)}
-        onMouseLeave={() => setHoveredLabel(null)}
-      >
-        {isHovered && (
-          <div className="absolute bottom-full mb-3 bg-slate-700 text-white text-xs rounded px-3 py-2 whitespace-nowrap z-10">
-            {r.label}: {formatValue(r.value, valueKind, d)}
-          </div>
-        )}
-
-        <div className="mb-2 text-[11px] px-2 py-1 rounded-md bg-muted tabular-nums">
-          {formatValue(r.value, valueKind, d)}
-        </div>
-
-        <div className="h-full flex items-end" style={{ width: "50px" }}>
-          <div
-            className="w-full rounded-t-md bg-blue-500 transition-opacity hover:opacity-80"
-            style={{ height: `${hPct}%` }}
-          />
-        </div>
-
-        <div className="mt-3 text-xs text-muted-foreground text-center whitespace-nowrap">
-          {r.label}
-        </div>
-      </div>
-    );
+  const options: ChartOptions<"bar"> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: { padding: { top: 18, right: 18, left: 18, bottom: 8 } },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx) =>
+            `${formatNumber(Number(ctx.parsed.y ?? 0), decimals)}${suffix}`,
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: {
+          maxRotation: 0,
+          minRotation: 0,
+          padding: 10,
+          font: { size: 12 },
+        },
+        title: {
+          display: true,
+          text: xLabel,
+          font: { size: 13 },
+          padding: { top: 10 },
+        },
+      },
+      y: {
+        beginAtZero: true,
+        min: 0,
+        max: safeMax,
+        afterBuildTicks: (axis) => {
+          axis.ticks = ticks.map((v) => ({ value: v })) as unknown as Tick[];
+        },
+        ticks: {
+          callback: (v) => `${formatNumber(Number(v), decimals)}${suffix}`,
+          font: { size: 12 },
+        },
+        grid: { color: "rgba(0,0,0,0.08)" },
+        title: {
+          display: true,
+          text: yLabel,
+          font: { size: 13, weight: "bold" },
+          padding: { bottom: 10 },
+        },
+      },
+    },
   };
 
   return (
-    <Card
-      dir="rtl"
-      className={["w-full h-full flex flex-col", className].filter(Boolean).join(" ")}
-    >
-      <CardHeader className="space-y-1 flex-shrink-0">
-        <CardTitle className="text-base md:text-lg leading-snug">{title}</CardTitle>
-        {subtitle && <div className="text-sm text-muted-foreground">{subtitle}</div>}
+    <Card className="m-15 w-250 max-w-full mx-auto">
+      <CardHeader className="py-3">
+        <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>
 
-      <CardContent className="pt-2 flex-1 flex flex-col">
-        <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground mb-3">
-          <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500" />
-          <span>{seriesName}</span>
-        </div>
-
-        <div className={["relative flex-1 w-full", chartHeightClassName].join(" ")}>
-          {ticks.map((tick) => {
-            const bottomPct = `${(tick / safeMax) * 100}%`;
-
-            return (
-              <div
-                key={tick}
-                className="absolute left-0 right-0 flex items-center"
-                style={{ bottom: bottomPct }}
-              >
-                {yAxisPosition === "left" ? (
-                  <>
-                    <div className="w-16 text-[11px] text-muted-foreground text-left pr-2 tabular-nums">
-                      {valueKind === "percent" ? `${tick}%` : tick.toLocaleString("he-IL")}
-                    </div>
-                    <div className="flex-1 border-t border-dashed border-muted-foreground/30" />
-                  </>
-                ) : (
-                  <>
-                    <div className="flex-1 border-t border-dashed border-muted-foreground/30" />
-                    <div className="w-16 text-[11px] text-muted-foreground text-right pl-2 tabular-nums">
-                      {valueKind === "percent" ? `${tick}%` : tick.toLocaleString("he-IL")}
-                    </div>
-                  </>
-                )}
-              </div>
-            );
-          })}
-
-          <div
-            className={[
-              "absolute inset-0",
-              yAxisPosition === "left" ? "pr-16 pl-4" : "pl-16 pr-4",
-            ].join(" ")}
-          >
-            {scrollable ? (
-              <div className="h-full w-full overflow-x-auto">
-                <div className="h-full flex items-end justify-start gap-10 min-w-max pr-10 pl-10">
-                  {rows.map(renderBar)}
-                </div>
-              </div>
-            ) : (
-              <div className="h-full w-full flex items-end justify-center gap-10">
-                {rows.map(renderBar)}
-              </div>
-            )}
-          </div>
-
-          {yLabel && (
-            <div
-              className={[
-                "absolute top-1/2 -translate-y-1/2 -rotate-90 text-xs text-muted-foreground",
-                yAxisPosition === "left" ? "left-0" : "right-0",
-              ].join(" ")}
-            >
-              {yLabel}
-            </div>
-          )}
-        </div>
-
-        {xLabel && (
-          <div className="mt-1 text-xs text-muted-foreground text-center flex-shrink-0">
-            {xLabel}
-          </div>
-        )}
+      <CardContent className="h-80 p-3">
+        <Bar data={data} options={options} />
       </CardContent>
     </Card>
   );
