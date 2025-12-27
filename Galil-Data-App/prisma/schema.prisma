@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model AuthorityGeneralInfo {
+  id                    Int      @id @default(autoincrement())
+  name                  String   @unique
+  symbol                Int      @unique
+  district              String
+  municipalStatus       String
+  distanceFromTelAviv   Float
+  establishedYear       String
+  coastalStatus         Boolean
+  councilMembersCount   Int
+  planningCommitteeId   Int
+  planningCommitteeName String
+  area                  Float
+  embedding             Unsupported("vector(768)")?
+}
+
+model AuthorityDemographics {
+  id                   Int      @id @default(autoincrement())
+  symbol               Int      @unique
+  name                 String
+  age_0_4              Float?
+  age_5_9              Float?
+  age_10_14            Float?
+  age_15_19            Float?
+  age_20_29            Float?
+  age_30_44            Float?
+  age_45_59            Float?
+  age_60_64            Float?
+  age_65_plus          Float?
+  age_0_17             Float?
+  age_75_plus          Float?
+  density              Float?
+  totalPopulation      Float?
+  totalIsraelis        Float?
+  men                  Float?
+  women                Float?
+  jewsAndOthersPercent Float?
+  jewsPercent          Float?
+  arabsPercent         Float?
+  muslimsPercent       Float?
+  christiansPercent    Float?
+  druzePercent         Float?
+  embedding            Unsupported("vector(768)")?
+}
