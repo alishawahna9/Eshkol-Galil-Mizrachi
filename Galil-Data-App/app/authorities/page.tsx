@@ -1,6 +1,6 @@
 import {FilterDropdownMenu} from "@/components/FilterDropdownBuilder";
 import FilterBarBox from "@/components/FilterBarBox";
-import TrendChartCard from "@/components/ui/TrendChartCard";
+import TrendChartCard from "@/components/TrendChartCard";
 
 import {SideFilterPanel} from "@/components/authorities/SideFilterPanel";
 import ComparisonChart from "@/components/authorities/ComparisonChart";

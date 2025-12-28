@@ -8,8 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "vectorize": "tsx scripts/sync-vectors.ts",
-    "predev": "npm run vectorize",
-    "prebuild": "npm run vectorize"
+    "predev": "npx prisma generate && npm run vectorize",
+    "prebuild": "npx prisma generate && npm run vectorize"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
