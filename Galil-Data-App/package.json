@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "vectorize": "tsx scripts/sync-vectors.ts",
-    "predev": "npx prisma generate && npm run vectorize",
+    "validate-keys": "tsx scripts/keys-check.ts",
+    "predev": "npm run validate-keys && npx prisma generate && npm run vectorize",
     "prebuild": "npx prisma generate && npm run vectorize"
   },
   "dependencies": {
