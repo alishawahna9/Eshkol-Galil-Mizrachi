@@ -4,7 +4,7 @@ import {useState} from "react";
 import AuthoritiesMap from "@/components/authorities/AuthoritiesMap";
 import AuthoritiesTable, {AuthorityRow} from "@//components/authorities/AuthoritiesTable";
 import MagamahUnified from "./MagamahUnified";
-import TrendChartCard from "@/components/TrendChartCard";
+import TrendChartCard from "@/components/ui/TrendChartCard";
 import ComparisonChart from "./ComparisonChart";
 
 type Props = {
