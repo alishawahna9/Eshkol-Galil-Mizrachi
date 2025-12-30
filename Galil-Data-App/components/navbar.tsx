@@ -40,7 +40,7 @@ export default function Navbar() {
           <NavLink href="/dataexplorer" active={pathname === "/dataexplorer"}>
             Data explorer
           </NavLink>
-
+        
           <NavLink href="/lifeindex" active={pathname === "/lifeindex"}>
             מדד איכות חיים
           </NavLink>
