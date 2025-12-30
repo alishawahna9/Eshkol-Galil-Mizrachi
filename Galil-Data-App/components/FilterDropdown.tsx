@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useLayoutEffect } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 
 type Option = { label: string; value: string };
@@ -22,56 +21,20 @@ export default function FilterDropdown({
   className,
 }: Props) {
   const [open, setOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement | null>(null);
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
-  const [menuStyle, setMenuStyle] = useState<{ left: number; top: number; width: number } | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
 
   const selected = options.find((o) => o.value === value);
 
-  // close on outside click (works across portal)
+  // close on outside click
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (
-        (wrapperRef.current && wrapperRef.current.contains(target)) ||
-        (triggerRef.current && triggerRef.current.contains(target)) ||
-        (dropdownRef.current && dropdownRef.current.contains(target))
-      ) {
-        return;
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
       }
-      setOpen(false);
     };
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-
     document.addEventListener("mousedown", onClick);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onClick);
-      document.removeEventListener("keydown", onKey);
-    };
+    return () => document.removeEventListener("mousedown", onClick);
   }, []);
-
-  // compute menu position when opened and on resize/scroll
-  useLayoutEffect(() => {
-    if (!open || !triggerRef.current) return;
-
-    const update = () => {
-      const rect = triggerRef.current!.getBoundingClientRect();
-      setMenuStyle({ left: rect.left + window.scrollX, top: rect.bottom + window.scrollY, width: rect.width });
-    };
-
-    update();
-    window.addEventListener("resize", update);
-    window.addEventListener("scroll", update, true);
-    return () => {
-      window.removeEventListener("resize", update);
-      window.removeEventListener("scroll", update, true);
-    };
-  }, [open]);
 
   return (
     <div
@@ -86,19 +49,18 @@ export default function FilterDropdown({
 
       {/* Trigger */}
       <button
-        ref={triggerRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="
           w-full h-12
           flex items-center justify-between
           rounded-xl
-          border border-border
-          bg-card
+          border border-slate-200
+          bg-white
           px-4
           text-sm
           shadow-sm
-          hover:bg-muted/30
+          hover:bg-slate-50
           focus:outline-none focus:ring-2 focus:ring-sky-300/60
         "
       >
@@ -110,12 +72,18 @@ export default function FilterDropdown({
         />
       </button>
 
-      {/* Dropdown (portal) */}
-      {open && menuStyle && createPortal(
+      {/* Dropdown */}
+      {open && (
         <div
-          ref={dropdownRef}
-          style={{ left: menuStyle.left, top: menuStyle.top + 8, width: menuStyle.width }}
-          className="z-[9999] absolute rounded-xl border border-border bg-card shadow-lg overflow-hidden"
+          className="
+            absolute z-50 mt-2
+            w-full
+            rounded-xl
+            border border-slate-200
+            bg-white
+            shadow-lg
+            overflow-hidden
+          "
         >
           {options.map((op) => {
             const active = op.value === value;
@@ -132,8 +100,8 @@ export default function FilterDropdown({
                   flex items-center justify-between
                   px-4 py-2
                   text-sm
-                  hover:bg-muted/30
-                  ${active ? "bg-muted/50 font-medium" : ""}
+                  hover:bg-sky-50
+                  ${active ? "bg-sky-100 font-medium" : ""}
                 `}
               >
                 <span>{op.label}</span>
@@ -141,8 +109,7 @@ export default function FilterDropdown({
               </button>
             );
           })}
-        </div>,
-        document.body
+        </div>
       )}
     </div>
   );

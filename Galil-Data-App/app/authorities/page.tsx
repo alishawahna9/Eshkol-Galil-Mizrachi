@@ -1,26 +1,14 @@
-import {FilterDropdownMenu} from "@/components/FilterDropdownBuilder";
-import FilterBarBox from "@/components/FilterBarBox";
-import TrendChartCard from "@/components/ui/TrendChartCard";
-
-import {SideFilterPanel} from "@/components/authorities/SideFilterPanel";
-import ComparisonChart from "@/components/authorities/ComparisonChart";
+import { SideFilterPanel } from "@/components/authorities/SideFilterPanel";
 import AuthoritiesFiltersBar from "@/components/authorities/AuthoritiesFiltersBar";
-import AuthoritiesMap from "@/components/authorities/AuthoritiesMap";
-import AuthoritiesTable, {AuthorityRow} from "@/components/authorities/AuthoritiesTable";
 import AuthorityTabs from "../../components/authorities/AuthorityTabs";
+import AuthoritiesResults from "@/components/authorities/AuthoritiesResults"; // הייבוא החדש
 
 export default function AuthoritiesPage({
   searchParams,
 }: {
   searchParams: Record<string, string | undefined>;
 }) {
-  const tableData: AuthorityRow[] = [
-    {name: "צפת", value: 39179},
-    {name: "קרית שמונה", value: 24254},
-    {name: "גולן", value: 21484},
-    {name: "הגליל העליון", value: 20881},
-    {name: "מרום הגליל", value: 16846},
-  ];
+  // מחקנו את ה-tableData הישן כי הטבלה החדשה שולפת מידע בעצמה
 
   return (
     <div className="mt-6">
@@ -34,7 +22,12 @@ export default function AuthoritiesPage({
             <AuthoritiesFiltersBar />
 
             <div className="mt-6 max-w-275">
-              <AuthorityTabs tableData={tableData} />
+              {/* כאן הקסם: אנחנו מעבירים את הקומפוננטה של השרת
+                  לתוך הקומפוננטה של הלקוח כ-Prop
+              */}
+              <AuthorityTabs 
+                  tableComponent={<AuthoritiesResults />} 
+              />
             </div>
           </div>
         </main>
