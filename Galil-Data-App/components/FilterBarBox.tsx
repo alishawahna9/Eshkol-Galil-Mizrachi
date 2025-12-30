@@ -8,9 +8,9 @@ export default function FilterBarBox({
       dir="rtl"
       className="
         inline-block
-        bg-white
+        bg-card
         rounded-2xl
-        border border-slate-200
+        border border-border
         shadow-sm
         px-4 py-3
       "

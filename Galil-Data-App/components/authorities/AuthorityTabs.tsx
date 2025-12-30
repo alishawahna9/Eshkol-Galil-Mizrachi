@@ -24,8 +24,8 @@ export default function AuthorityTabs({tableData}: Props) {
                 <AuthoritiesTable title="פירוט רשויות" data={tableData} />
               </div>
 
-              <div className="w-full h-full">
-                <AuthoritiesMap />
+              <div className="w-full h-full min-h-0 relative overflow-hidden">
+                <AuthoritiesMap key={active} />
               </div>
             </div>
           )}
@@ -93,7 +93,7 @@ export default function AuthorityTabs({tableData}: Props) {
           className={`w-[140px] py-3 rounded-lg flex items-center justify-center shadow-sm transition-colors duration-150 ${
             active === "map"
               ? "bg-sky-400 text-white shadow-md"
-              : "bg-white border border-slate-200 text-slate-700"
+              : "bg-card border border-border text-foreground"
           }`}>
           מפה
         </button>
@@ -103,7 +103,7 @@ export default function AuthorityTabs({tableData}: Props) {
           className={`w-[140px] py-3 rounded-lg flex items-center justify-center shadow-sm transition-colors duration-150 ${
             active === "chart"
               ? "bg-sky-400 text-white shadow-md"
-              : "bg-white border border-slate-200 text-slate-700"
+              : "bg-card border border-border text-foreground"
           }`}>
           גרף
         </button>
@@ -113,7 +113,7 @@ export default function AuthorityTabs({tableData}: Props) {
           className={`w-[140px] py-3 rounded-lg flex items-center justify-center shadow-sm transition-colors duration-150 ${
             active === "trend"
               ? "bg-sky-400 text-white shadow-md"
-              : "bg-white border border-slate-200 text-slate-700"
+              : "bg-card border border-border text-foreground"
           }`}>
           מגמה
         </button>
@@ -123,7 +123,7 @@ export default function AuthorityTabs({tableData}: Props) {
           className={`w-[140px] py-3 rounded-lg flex items-center justify-center shadow-sm transition-colors duration-150 ${
             active === "trendUnified"
               ? "bg-sky-400 text-white shadow-md"
-              : "bg-white border border-slate-200 text-slate-700"
+              : "bg-card border border-border text-foreground"
           }`}>
           מגמה אחודה
         </button>
@@ -133,7 +133,7 @@ export default function AuthorityTabs({tableData}: Props) {
           className={`w-[140px] py-3 rounded-lg flex items-center justify-center shadow-sm transition-colors duration-150 ${
             active === "tableDownload"
               ? "bg-sky-400 text-white shadow-md"
-              : "bg-white border border-slate-200 text-slate-700"
+              : "bg-card border border-border text-foreground"
           }`}>
           טבלה והורדה
         </button>

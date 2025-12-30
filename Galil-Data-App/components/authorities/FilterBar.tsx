@@ -19,7 +19,7 @@ export default function FilterBar({ filters }: Props) {
   return (
     <div
       dir="rtl"
-      className="flex items-center gap-4 border-b border-slate-200 px-4 py-3"
+      className="flex items-center gap-4 border-b border-border px-4 py-3"
     >
       {filters.map((filter, index) => (
         <div key={filter.id} className="flex items-center gap-4">
@@ -30,8 +30,8 @@ export default function FilterBar({ filters }: Props) {
               rounded-md border px-3 py-2 text-sm
               ${
                 filter.disabled
-                  ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                  : "bg-white text-slate-900"
+                  ? "bg-muted/30 text-muted-foreground cursor-not-allowed"
+                  : "bg-card text-foreground"
               }
             `}
           >
