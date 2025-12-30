@@ -153,7 +153,7 @@ export default function TrendChart() {
 
           {hoverIndex !== null && tipPos && (
             <div
-              className="absolute z-50 bg-white border border-slate-200 rounded shadow-lg p-2 text-sm"
+              className="absolute z-50 bg-card border border-border rounded shadow-lg p-2 text-sm"
               style={{ left: tipPos.x + 12, top: tipPos.y + 12, minWidth: 140 }}
             >
               <div className="flex items-center justify-between gap-2">

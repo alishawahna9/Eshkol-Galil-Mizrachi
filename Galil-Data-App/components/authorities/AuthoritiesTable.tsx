@@ -26,9 +26,9 @@ export default function AuthoritiesTable({
       dir="rtl"
       className="
         h-full
-        bg-white
+        bg-card
         rounded-2xl
-        border border-slate-200
+        border border-border
         shadow-sm
         overflow-hidden
       "
@@ -52,7 +52,7 @@ export default function AuthoritiesTable({
             {data.map((row) => (
               <TableRow
                 key={row.name}
-                className="hover:bg-slate-50 transition"
+                className="hover:bg-muted/50 transition"
               >
                 <TableCell className="font-medium">
                   {row.name}
@@ -68,7 +68,7 @@ export default function AuthoritiesTable({
               <TableRow>
                 <TableCell
                   colSpan={2}
-                  className="text-center text-sm text-slate-400 py-6"
+                  className="text-center text-sm text-muted-foreground py-6"
                 >
                   אין נתונים להצגה
                 </TableCell>
