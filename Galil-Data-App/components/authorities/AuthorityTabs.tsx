@@ -1,18 +1,19 @@
 "use client";
 
-import {useState} from "react";
+import { useState, ReactNode } from "react";
 import AuthoritiesMap from "@/components/authorities/AuthoritiesMap";
-import AuthoritiesTable, {AuthorityRow} from "@//components/authorities/AuthoritiesTable";
 import MagamahUnified from "./MagamahUnified";
 import TrendChartCard from "@/components/ui/TrendChartCard";
 import ComparisonChart from "./ComparisonChart";
 
+// 1. שינינו את ה-Props לקבלת רכיב במקום דאטה
 type Props = {
-  tableData: AuthorityRow[];
+  tableComponent: ReactNode;
 };
 
-export default function AuthorityTabs({tableData}: Props) {
+export default function AuthorityTabs({ tableComponent }: Props) {
   const [active, setActive] = useState<string>("map");
+
   return (
     <div dir="rtl">
       {/* Content area with fixed height */}
@@ -20,8 +21,10 @@ export default function AuthorityTabs({tableData}: Props) {
         <div className="h-[520px] w-full">
           {active === "map" && (
             <div className="grid grid-cols-[520px_1fr] gap-4 h-full">
-              <div className="w-full h-full">
-                <AuthoritiesTable title="פירוט רשויות" data={tableData} />
+              
+              {/* 2. כאן אנחנו מציגים את הטבלה שהועברה כ-Prop */}
+              <div className="w-full h-full min-h-0 overflow-auto"> 
+                {tableComponent}
               </div>
 
               <div className="w-full h-full min-h-0 relative overflow-hidden">
@@ -42,23 +45,23 @@ export default function AuthorityTabs({tableData}: Props) {
                   {
                     name: "מגדל שמס",
                     points: [
-                      {x: 2003, y: 8400},
-                      {x: 2005, y: 9000},
-                      {x: 2010, y: 9800},
-                      {x: 2015, y: 10600},
-                      {x: 2020, y: 11300},
-                      {x: 2023, y: 11150},
+                      { x: 2003, y: 8400 },
+                      { x: 2005, y: 9000 },
+                      { x: 2010, y: 9800 },
+                      { x: 2015, y: 10600 },
+                      { x: 2020, y: 11300 },
+                      { x: 2023, y: 11150 },
                     ],
                   },
                   {
                     name: "בוקעאתא",
                     points: [
-                      {x: 2003, y: 5200},
-                      {x: 2005, y: 5400},
-                      {x: 2010, y: 5900},
-                      {x: 2015, y: 6300},
-                      {x: 2020, y: 6700},
-                      {x: 2023, y: 6850},
+                      { x: 2003, y: 5200 },
+                      { x: 2005, y: 5400 },
+                      { x: 2010, y: 5900 },
+                      { x: 2015, y: 6300 },
+                      { x: 2020, y: 6700 },
+                      { x: 2023, y: 6850 },
                     ],
                   },
                 ]}
@@ -94,7 +97,8 @@ export default function AuthorityTabs({tableData}: Props) {
             active === "map"
               ? "bg-sky-400 text-white shadow-md"
               : "bg-card border border-border text-foreground"
-          }`}>
+          }`}
+        >
           מפה
         </button>
 
@@ -104,7 +108,8 @@ export default function AuthorityTabs({tableData}: Props) {
             active === "chart"
               ? "bg-sky-400 text-white shadow-md"
               : "bg-card border border-border text-foreground"
-          }`}>
+          }`}
+        >
           גרף
         </button>
 
@@ -114,7 +119,8 @@ export default function AuthorityTabs({tableData}: Props) {
             active === "trend"
               ? "bg-sky-400 text-white shadow-md"
               : "bg-card border border-border text-foreground"
-          }`}>
+          }`}
+        >
           מגמה
         </button>
 
@@ -124,7 +130,8 @@ export default function AuthorityTabs({tableData}: Props) {
             active === "trendUnified"
               ? "bg-sky-400 text-white shadow-md"
               : "bg-card border border-border text-foreground"
-          }`}>
+          }`}
+        >
           מגמה אחודה
         </button>
 
@@ -134,7 +141,8 @@ export default function AuthorityTabs({tableData}: Props) {
             active === "tableDownload"
               ? "bg-sky-400 text-white shadow-md"
               : "bg-card border border-border text-foreground"
-          }`}>
+          }`}
+        >
           טבלה והורדה
         </button>
       </div>
