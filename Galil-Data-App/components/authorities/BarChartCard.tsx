@@ -12,13 +12,13 @@ import {
   type ChartData,
   type Tick,
 } from "chart.js";
-import {Bar} from "react-chartjs-2";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import { Bar } from "react-chartjs-2";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 type ValueKind = "number" | "percent";
-type Row = {label: string; value: number};
+type Row = { label: string; value: number };
 
 function formatNumber(n: number, decimals: number) {
   return n.toLocaleString(undefined, {
@@ -35,7 +35,7 @@ function buildNumberTicks(max: number, step: number) {
   const ticks: number[] = [];
   for (let t = 0; t <= top; t += safeStep) ticks.push(t);
 
-  return {top, ticks};
+  return { top, ticks };
 }
 
 type Props = {
@@ -45,9 +45,18 @@ type Props = {
   tickStep: number;
   yLabel: string;
   xLabel: string;
+  cardClassName?: string;
 };
 
-export default function BarChartCard({title, rows, valueKind, tickStep, yLabel, xLabel}: Props) {
+export default function BarChartCard({
+  title,
+  rows,
+  valueKind,
+  tickStep,
+  yLabel,
+  xLabel,
+  cardClassName,
+}: Props) {
   const labels = rows.map((r) => r.label);
   const values = rows.map((r) => r.value);
 
@@ -59,7 +68,8 @@ export default function BarChartCard({title, rows, valueKind, tickStep, yLabel, 
   // Percent -> fixed 100, Number -> aligned to tick top
   let safeMax = valueKind === "percent" ? 100 : Math.max(1, dataMax * 1.15);
 
-  let ticks: number[] = valueKind === "percent" ? [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100] : [];
+  let ticks: number[] =
+    valueKind === "percent" ? [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100] : [];
 
   if (valueKind === "number") {
     const built = buildNumberTicks(dataMax, tickStep);
@@ -86,29 +96,30 @@ export default function BarChartCard({title, rows, valueKind, tickStep, yLabel, 
   const options: ChartOptions<"bar"> = {
     responsive: true,
     maintainAspectRatio: false,
-    layout: {padding: {top: 18, right: 18, left: 18, bottom: 8}},
+    layout: { padding: { top: 18, right: 18, left: 18, bottom: 8 } },
     plugins: {
-      legend: {display: false},
+      legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (ctx) => `${formatNumber(Number(ctx.parsed.y ?? 0), decimals)}${suffix}`,
+          label: (ctx) =>
+            `${formatNumber(Number(ctx.parsed.y ?? 0), decimals)}${suffix}`,
         },
       },
     },
     scales: {
       x: {
-        grid: {display: false},
+        grid: { display: false },
         ticks: {
           maxRotation: 0,
           minRotation: 0,
           padding: 10,
-          font: {size: 12},
+          font: { size: 12 },
         },
         title: {
           display: true,
           text: xLabel,
-          font: {size: 13},
-          padding: {top: 10},
+          font: { size: 13 },
+          padding: { top: 10 },
         },
       },
       y: {
@@ -116,25 +127,25 @@ export default function BarChartCard({title, rows, valueKind, tickStep, yLabel, 
         min: 0,
         max: safeMax,
         afterBuildTicks: (axis) => {
-          axis.ticks = ticks.map((v) => ({value: v})) as unknown as Tick[];
+          axis.ticks = ticks.map((v) => ({ value: v })) as unknown as Tick[];
         },
         ticks: {
           callback: (v) => `${formatNumber(Number(v), decimals)}${suffix}`,
-          font: {size: 12},
+          font: { size: 12 },
         },
-        grid: {color: "rgba(0,0,0,0.08)"},
+        grid: { color: "rgba(0,0,0,0.08)" },
         title: {
           display: true,
           text: yLabel,
-          font: {size: 13, weight: "bold"},
-          padding: {bottom: 10},
+          font: { size: 13, weight: "bold" },
+          padding: { bottom: 10 },
         },
       },
     },
   };
 
   return (
-    <Card className="m-15 w-250 max-w-full mx-auto">
+    <Card className={cardClassName ?? "m-15 w-250 max-w-full mx-auto"}>
       <CardHeader className="py-3">
         <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>
