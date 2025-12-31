@@ -5,13 +5,10 @@ import DataExplorerView from "@/components/dataexplorer/DataExplorerView";
 export default function DataExplorerPage() {
   // server-safe constants
   const personalSegmentionOprtions = [
-    { label: "אוכלוסייה כללית", value: "totalPopulation" },
-    { label: "יהודים ואחרים", value: "jewsAndOthersPercent" },
-    { label: "יהודים", value: "jewsPercent" },
-    { label: "ערבים", value: "arabsPercent" },
-    { label: "מוסלמים", value: "muslimsPercent" },
-    { label: "נוצרים", value: "christiansPercent" },
-    { label: "דרוזים", value: "druzePercent" },
+    { label: "יהודים", value: "יהודים" },
+    { label: "מוסלמים", value: "מוסלמים" },
+    { label: "נוצרים", value: "נוצרים" },
+    { label: "דרוזים", value: "דרוזים" },
   ];
 
   const contentTypeOptions = [

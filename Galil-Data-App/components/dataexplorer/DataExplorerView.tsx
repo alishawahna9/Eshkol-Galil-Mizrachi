@@ -8,7 +8,6 @@ import { BarChart3, Table2 } from "lucide-react";
 import FilterDropdown from "@/components/FilterDropdown";
 import GlilElectricityTable from "@/components/dataexplorer/GlilElectricityTable";
 import BarChartCard from "@/components/authorities/BarChartCard";
-import { DataExplorerFilters } from "@/components/dataexplorer/DataExplorerFilters";
 
 type Option = { label: string; value: string };
 
