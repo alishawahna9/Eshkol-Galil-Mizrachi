@@ -81,11 +81,6 @@ export default function AuthorityTabs({ tableComponent }: Props) {
             </div>
           )}
 
-          {active === "tableDownload" && (
-            <div className="h-full flex items-center justify-center p-4">
-              Placeholder: טבלה והורדה
-            </div>
-          )}
         </div>
       </div>
 
@@ -135,16 +130,6 @@ export default function AuthorityTabs({ tableComponent }: Props) {
           מגמה אחודה
         </button>
 
-        <button
-          onClick={() => setActive("tableDownload")}
-          className={`w-[140px] py-3 rounded-lg flex items-center justify-center shadow-sm transition-colors duration-150 ${
-            active === "tableDownload"
-              ? "bg-sky-400 text-white shadow-md"
-              : "bg-card border border-border text-foreground"
-          }`}
-        >
-          טבלה והורדה
-        </button>
       </div>
     </div>
   );
