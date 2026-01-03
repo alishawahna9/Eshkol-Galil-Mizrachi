@@ -43,7 +43,7 @@ export default function FilterDropdown({
       className={["relative w-full", className].filter(Boolean).join(" ")}
     >
       {/* Label */}
-      <div className="mb-1 text-sm font-medium text-sky-600 text-center md:text-right">
+      <div className="mb-1 text-sm font-medium text-sky-600 text-center md:text-right dark:text-sky-300">
         {label}
       </div>
 
@@ -62,13 +62,18 @@ export default function FilterDropdown({
           shadow-sm
           hover:bg-slate-50
           focus:outline-none focus:ring-2 focus:ring-sky-300/60
+          dark:border-slate-700
+          dark:bg-slate-900
+          dark:text-slate-100
+          dark:hover:bg-slate-800
+          dark:focus:ring-sky-500/30
         "
       >
-        <span className="truncate">
-          {selected ? selected.label : "בחר"}
-        </span>
+        <span className="truncate">{selected ? selected.label : "בחר"}</span>
         <ChevronDown
-          className={`w-4 h-4 transition ${open ? "rotate-180" : ""}`}
+          className={`w-4 h-4 transition ${
+            open ? "rotate-180" : ""
+          } dark:text-slate-200`}
         />
       </button>
 
@@ -83,6 +88,9 @@ export default function FilterDropdown({
             bg-white
             shadow-lg
             overflow-hidden
+            dark:border-slate-700
+            dark:bg-slate-900
+            dark:shadow-black/30
           "
         >
           {options.map((op) => {
@@ -102,10 +110,15 @@ export default function FilterDropdown({
                   text-sm
                   hover:bg-sky-50
                   ${active ? "bg-sky-100 font-medium" : ""}
+                  dark:text-slate-100
+                  dark:hover:bg-slate-800
+                  ${active ? "dark:bg-slate-800" : ""}
                 `}
               >
                 <span>{op.label}</span>
-                {active && <Check className="w-4 h-4 text-sky-600" />}
+                {active && (
+                  <Check className="w-4 h-4 text-sky-600 dark:text-sky-300" />
+                )}
               </button>
             );
           })}

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -14,6 +14,7 @@ import {
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTheme } from "next-themes";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
@@ -57,6 +58,9 @@ export default function BarChartCard({
   xLabel,
   cardClassName,
 }: Props) {
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+
   const labels = rows.map((r) => r.label);
   const values = rows.map((r) => r.value);
 
@@ -65,7 +69,6 @@ export default function BarChartCard({
 
   const dataMax = Math.max(0, ...values);
 
-  // Percent -> fixed 100, Number -> aligned to tick top
   let safeMax = valueKind === "percent" ? 100 : Math.max(1, dataMax * 1.15);
 
   let ticks: number[] =
@@ -93,6 +96,18 @@ export default function BarChartCard({
     ],
   };
 
+  // ✅ צבעים עבור dark/light
+  const chartColors = useMemo(() => {
+    return {
+      tick: isDark ? "rgba(226,232,240,0.92)" : "rgba(15,23,42,0.88)", // slate-200 / slate-900
+      title: isDark ? "rgba(226,232,240,0.92)" : "rgba(15,23,42,0.88)",
+      grid: isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)",
+      tooltipBg: isDark ? "rgba(15,23,42,0.95)" : "rgba(255,255,255,0.98)",
+      tooltipBorder: isDark ? "rgba(148,163,184,0.35)" : "rgba(15,23,42,0.15)",
+      tooltipText: isDark ? "rgba(226,232,240,0.95)" : "rgba(15,23,42,0.95)",
+    };
+  }, [isDark]);
+
   const options: ChartOptions<"bar"> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -100,6 +115,11 @@ export default function BarChartCard({
     plugins: {
       legend: { display: false },
       tooltip: {
+        backgroundColor: chartColors.tooltipBg,
+        borderColor: chartColors.tooltipBorder,
+        borderWidth: 1,
+        titleColor: chartColors.tooltipText,
+        bodyColor: chartColors.tooltipText,
         callbacks: {
           label: (ctx) =>
             `${formatNumber(Number(ctx.parsed.y ?? 0), decimals)}${suffix}`,
@@ -114,12 +134,14 @@ export default function BarChartCard({
           minRotation: 0,
           padding: 10,
           font: { size: 12 },
+          color: chartColors.tick,
         },
         title: {
           display: true,
           text: xLabel,
           font: { size: 13 },
           padding: { top: 10 },
+          color: chartColors.title,
         },
       },
       y: {
@@ -132,13 +154,15 @@ export default function BarChartCard({
         ticks: {
           callback: (v) => `${formatNumber(Number(v), decimals)}${suffix}`,
           font: { size: 12 },
+          color: chartColors.tick,
         },
-        grid: { color: "rgba(0,0,0,0.08)" },
+        grid: { color: chartColors.grid },
         title: {
           display: true,
           text: yLabel,
           font: { size: 13, weight: "bold" },
           padding: { bottom: 10 },
+          color: chartColors.title,
         },
       },
     },
@@ -147,7 +171,7 @@ export default function BarChartCard({
   return (
     <Card className={cardClassName ?? "m-15 w-250 max-w-full mx-auto"}>
       <CardHeader className="py-3">
-        <CardTitle className="text-base">{title}</CardTitle>
+        <CardTitle className="text-base dark:text-slate-100">{title}</CardTitle>
       </CardHeader>
 
       <CardContent className="h-80 p-3">
