@@ -28,7 +28,7 @@ export default async function AuthoritiesResults() {
               <col style={{ width: '30%' }} />
             </colgroup>
             <TableCaption>רשימת רשויות ואוכלוסייה.</TableCaption>
-            <TableHeader>
+            <TableHeader className="sticky">
               <TableRow className="border-b border-border">
                 <TableHead className="text-right font-semibold sticky top-0 bg-card/90 backdrop-blur-sm z-20 whitespace-normal">שם הרשות</TableHead>
                 <TableHead className="text-right font-semibold sticky top-0 bg-card/90 backdrop-blur-sm z-20 whitespace-normal">אוכלוסייה כוללת</TableHead>
