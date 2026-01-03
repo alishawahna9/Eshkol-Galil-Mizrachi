@@ -1,71 +1,49 @@
-//app/DataExplorer/page.tsx
+// Main Data Explorer page layout
 import { SideFilterPanel } from "@/components/authorities/SideFilterPanel";
 import DataExplorerView from "@/components/dataexplorer/DataExplorerView";
+import { getDataExplorerOptions } from "@/components/dataexplorer/dataexplorer-service";
 
 export default function DataExplorerPage() {
-  // server-safe constants
-  const personalSegmentionOprtions = [
-    { label: "יהודים", value: "יהודים" },
-    { label: "מוסלמים", value: "מוסלמים" },
-    { label: "נוצרים", value: "נוצרים" },
-    { label: "דרוזים", value: "דרוזים" },
-  ];
-
-  const contentTypeOptions = [
-    { label: "מספרי", value: "number" },
-    { label: "אחוזים", value: "percent" },
-  ];
-
-  const yearsOptions = [
-    { label: "2021", value: "2021" },
-    { label: "2022", value: "2022" },
-    { label: "2023", value: "2023" },
-  ];
-
-  const tableHeaders = ["שנה", "אשכול גליל מזרחי"];
-  const tableRows: (string | number)[][] = [
-    [2017, "13%"],
-    [2018, "25%"],
-    [2019, "14%"],
-    [2020, "14%"],
-    [2021, "22%"],
-    [2022, "21%"],
-  ];
+  // Options for split / value type / year dropdowns
+  const { splitOptions, contentTypeOptions, yearsOptions } =
+    getDataExplorerOptions();
 
   return (
-    <>
-      <main dir="rtl" className="px-6 py-4">
-        <div
-          className="
-            mx-auto
-            grid
-            grid-cols-1
-            gap-6
-            items-stretch
-            md:grid-cols-[minmax(360px,400px)_1fr]
-            md:gap-8
-            "
+    <main dir="rtl" className="px-6 py-4">
+      {/* Page title */}
+      <h1 className="text-3xl font-bold text-center mb-8 mt-5">
+        חקר נתונים - אשכול גליל מזרחי
+      </h1>
+
+      <div
+        className="
+          mx-auto
+          grid
+          grid-cols-1
+          gap-6
+          items-stretch
+          md:grid-cols-[minmax(360px,400px)_1fr]
+          md:gap-8
+        "
+        dir="rtl"
+      >
+        {/* Right column: side filter and metric panel */}
+        <aside className="w-full order-1 md:order-0" dir="rtl">
+          <SideFilterPanel />
+        </aside>
+
+        {/* Left column: main data explorer (chart / table) */}
+        <section
+          className="w-full min-w-0 flex-row-reverse flex-row-reverse-col order-2 md:order-0"
           dir="rtl"
         >
-          <aside className="w-full order-1 md:order-0" dir="rtl">
-            <SideFilterPanel />
-          </aside>
-
-          {/* ✅ All hooks are inside this client component */}
-          <section
-            className="w-full min-w-0 flex-row-reverse flex-row-reverse-col order-2 md:order-0"
-            dir="rtl"
-          >
-            <DataExplorerView
-              personalSegmentionOprtions={personalSegmentionOprtions}
-              contentTypeOptions={contentTypeOptions}
-              yearsOptions={yearsOptions}
-              tableHeaders={tableHeaders}
-              tableRows={tableRows}
-            />
-          </section>
-        </div>
-      </main>
-    </>
+          <DataExplorerView
+            splitOptions={splitOptions}
+            contentTypeOptions={contentTypeOptions}
+            yearsOptions={yearsOptions}
+          />
+        </section>
+      </div>
+    </main>
   );
 }
