@@ -27,7 +27,7 @@ const parseStrictNumber = (val: any): number => {
 };
 
 async function main() {
-  return console.log("seeding implemented no need to run again");
+  //return console.log("seeding implemented no need to run again");
   // --- 1. SEED: AuthorityGeneralInfo ---
   const generalCsvPath = path.resolve(__dirname, "./authorities_general.csv");
   if (fs.existsSync(generalCsvPath)) {
@@ -97,6 +97,37 @@ async function main() {
         create: data,
       });
     }
+  }
+
+  // --- 3. SEED: PopulationData ---
+  const popCsvPath = path.resolve(__dirname, "./population_data.csv");
+  if (fs.existsSync(popCsvPath)) {
+    const content = fs.readFileSync(popCsvPath, "utf-8");
+    const rows = parse(content, { columns: false, skip_empty_lines: true, bom: true });
+    const header = rows[0] || [];
+    const dataRows = rows.slice(1);
+
+    console.log(`🚀 Seeding PopulationData: ${dataRows.length} authorities × years`);
+    const records: Array<{ authority: string; year: number; population: number }> = [];
+
+    for (const row of dataRows) {
+      const authority = String(row[0] || "").trim();
+      if (!authority || authority === "סך הכל") continue; // לדלג על שורת סיכום
+      for (let i = 1; i < header.length && i < row.length; i++) {
+        const year = parseInt(String(header[i]), 10);
+        if (isNaN(year)) continue;
+        const population = Math.floor(parseStrictNumber(row[i]));
+        records.push({ authority, year, population });
+      }
+    }
+
+    // to avoid huge single requests, insert in chunks
+    const chunkSize = 1000;
+    for (let i = 0; i < records.length; i += chunkSize) {
+      const chunk = records.slice(i, i + chunkSize);
+      await prisma.populationData.createMany({ data: chunk, skipDuplicates: true });
+    }
+    console.log(`Inserted ${records.length} population records (duplicates skipped)`);
   }
 
   console.log("\n✅ Done! All tables seeded.");
