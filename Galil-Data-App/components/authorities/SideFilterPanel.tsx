@@ -27,13 +27,19 @@ export function SideFilterPanel({ onFiltersChange }: { onFiltersChange?: (f: { d
   // חישוב המדד שנבחר כדי להעביר גם את הלייבל שלו לקומפוננטה
   const selectedMetric = METRICS.find((m) => m.key === selectedKey) || METRICS[0];
 
-  // Debounced notify: notify parent 100ms אחרי שינוי אחרון (מהיר יותר)
+  // Debounced notify: notify parent 100ms אחרי שינוי אחרון
   useEffect(() => {
     const id = setTimeout(() => {
+      console.log('SideFilterPanel: notify parent', { domain, search, metric: selectedKey });
       onFiltersChange?.({ domain, search, metric: selectedKey });
     }, 100);
     return () => clearTimeout(id);
   }, [domain, search, selectedKey, onFiltersChange]);
+
+  function handleDomainChange(d: string) {
+    console.log('SideFilterPanel: domain changed handler', d);
+    setDomain(d);
+  }
 
   return (
     <div className="p-6">
@@ -58,7 +64,7 @@ export function SideFilterPanel({ onFiltersChange }: { onFiltersChange?: (f: { d
             </TabsContent>
 
             <TabsContent value="filters" className="space-y-6">
-              <div><DomainFilter active={domain as any} onChange={(d) => setDomain(d)} /></div>
+              <div><DomainFilter active={domain as any} onChange={(d) => handleDomainChange(d)} /></div>
               <Button variant="outline" className="w-full">+ מסננים נוספים</Button>
               
               <div className="space-y-2">
