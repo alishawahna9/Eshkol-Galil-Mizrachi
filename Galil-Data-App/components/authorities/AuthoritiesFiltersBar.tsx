@@ -3,48 +3,8 @@ import { FilterDropdownMenu } from "@/components/FilterDropdownBuilder";
 
 export default function AuthoritiesFiltersBar() {
   return (
+    <div className="w-full pt-6">
     <FilterBarBox>
-      <FilterDropdownMenu
-        label="אזור"
-        param="area"
-        placeholder="ארצי"
-        options={[
-          { label: "ארצי", value: "national" },
-          { label: "צפון", value: "north" },
-          { label: "מרכז", value: "center" },
-        ]}
-      />
-
-      <FilterDropdownMenu
-        label="סוג השוואה"
-        param="compareType"
-        placeholder="ללא השוואה"
-        options={[
-          { label: "מול תקופה קודמת", value: "previous" },
-          { label: "מול יעד", value: "target" },
-        ]}
-      />
-
-      <FilterDropdownMenu
-        label="נקודת השוואה"
-        param="comparePoint"
-        placeholder="ללא נקודת השוואה"
-        options={[
-          { label: "חודש קודם", value: "prev-month" },
-          { label: "שנה קודמת", value: "prev-year" },
-        ]}
-      />
-
-      <FilterDropdownMenu
-        label="סוג ערך"
-        param="valueType"
-        placeholder="מספרי"
-        options={[
-          { label: "מספרי", value: "number" },
-          { label: "אחוזי", value: "percent" },
-        ]}
-      />
-
       <FilterDropdownMenu
   label="בחירת שנה"
   param="year"
@@ -74,6 +34,17 @@ export default function AuthoritiesFiltersBar() {
   ]}
 />
 
+      <FilterDropdownMenu
+        label="סוג ערך"
+        param="valueType"
+        placeholder="מספרי"
+        options={[
+          { label: "מספרי", value: "number" },
+          { label: "אחוזי", value: "percent" },
+        ]}
+      />
+
     </FilterBarBox>
+  </div>
   );
 }
