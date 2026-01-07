@@ -9,9 +9,11 @@ import MapTab from "@/components/authorities/MapTab";
 
 type Props = {
   tableComponent: ReactNode;
+  onSelectAuthority?: (name: string | null) => void;
+  selectedAuthority?: string | null;
 };
 
-export default function AuthorityTabs({ tableComponent }: Props) 
+export default function AuthorityTabs({ tableComponent, onSelectAuthority, selectedAuthority }: Props) 
  {
   const [active, setActive] = useState<string>("map");
 
@@ -21,7 +23,7 @@ export default function AuthorityTabs({ tableComponent }: Props)
         <div className="h-[520px] w-full">
 
           {/* ✅ MAP TAB */}
-          {active === "map" && <MapTab />}
+          {active === "map" && <MapTab tableComponent={tableComponent} onSelectAuthority={onSelectAuthority} selectedAuthority={selectedAuthority} />}
 
 
           {active === "trend" && (

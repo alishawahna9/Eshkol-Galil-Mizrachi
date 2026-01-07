@@ -8,22 +8,28 @@ type Row = {
   value: number;
 };
 
+// 1. מיפוי בין המפתח (שמגיע מהצד-לקוח) לשם הקובץ בתיקיית prisma
+// עליך לוודא שהקבצים האלה באמת קיימים בתיקייה!
+const FILE_MAPPING: Record<string, string> = {
+  "total_population": "population_data.csv",       // אוכלוסיה כללית
+  "jews_and_others": "population_jews.csv",        // יהודים ואחרים (שם קובץ לדוגמה)
+  "arabs": "population_arabs.csv",                 // ערבים (שם קובץ לדוגמה)
+  "muslims": "population_muslims.csv"              // מוסלמים (שם קובץ לדוגמה)
+};
+
 function detectDelimiter(line: string) {
-  // אם זה CSV רגיל → יש פסיקים. אם זה TSV → יש טאבים.
   if (line.includes(",")) return ",";
   if (line.includes("\t")) return "\t";
-  return ","; // ברירת מחדל
+  return ",";
 }
 
 function toIntSafe(v: string) {
-  // מוריד פסיקים של אלפים ורווחים
   const n = Number(String(v ?? "").replace(/,/g, "").trim());
   return Number.isFinite(n) ? n : null;
 }
 
 function parsePopulationCSV(fileContent: string, year: number): Row[] {
-  // מנקה BOM אם יש
-  const content = fileContent.replace(/^\uFEFF/, "");
+  const content = fileContent.replace(/^\uFEFF/, ""); // ניקוי BOM
 
   const lines = content
     .split(/\r?\n/)
@@ -35,7 +41,7 @@ function parsePopulationCSV(fileContent: string, year: number): Row[] {
   const delim = detectDelimiter(lines[0]);
   const header = lines[0].split(delim).map((s) => s.trim());
 
-  // header: ["רשויות","2002","2003",...]
+  // איתור העמודה של השנה המבוקשת
   const yearIndex = header.findIndex((h) => Number(h) === year);
   if (yearIndex === -1) return [];
 
@@ -46,7 +52,6 @@ function parsePopulationCSV(fileContent: string, year: number): Row[] {
     const authority = cols[0];
 
     if (!authority) continue;
-    // אם לא רוצים שורת סך הכל בטבלה:
     if (authority.includes("סך הכל")) continue;
 
     const val = toIntSafe(cols[yearIndex]);
@@ -55,7 +60,6 @@ function parsePopulationCSV(fileContent: string, year: number): Row[] {
     out.push({ authority, year, value: val });
   }
 
-  // מיון מהגדול לקטן כמו אצלכם במסך
   out.sort((a, b) => b.value - a.value);
   return out;
 }
@@ -65,22 +69,38 @@ export async function GET(req: Request) {
 
   const yearStr = searchParams.get("year");
   const authority = (searchParams.get("authority") || "").trim();
+  
+  // 2. קבלת המדד מה-URL (ברירת מחדל: אוכלוסיה כללית)
+  const metric = searchParams.get("metric") || "total_population";
 
   const year = Number(yearStr);
   if (!yearStr || !Number.isFinite(year)) {
     return NextResponse.json({ error: "Missing/invalid year" }, { status: 400 });
   }
 
-  const filePath = path.join(process.cwd(), "prisma", "population_data.csv");
+  // 3. בדיקה שהמדד תקין ושליפת שם הקובץ המתאים
+  const fileName = FILE_MAPPING[metric];
+  
+  if (!fileName) {
+    return NextResponse.json(
+      { error: `Invalid metric type: ${metric}` }, 
+      { status: 400 }
+    );
+  }
+
+  const filePath = path.join(process.cwd(), "prisma", fileName);
 
   if (!fs.existsSync(filePath)) {
+    // החזרת שגיאה מפורטת שתעזור לך להבין איזה קובץ חסר
     return NextResponse.json(
-      { error: "population_data.csv not found in /prisma" },
-      { status: 500 }
+      { error: `File not found: ${fileName} (for metric: ${metric})` },
+      { status: 404 } // שיניתי ל-404 כי הקובץ לא נמצא
     );
   }
 
   const raw = fs.readFileSync(filePath, "utf8");
+  
+  // 4. שליחת הקובץ הנכון לפונקציית הפירסור
   let data = parsePopulationCSV(raw, year);
 
   if (authority) {
@@ -90,6 +110,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     year,
     authority: authority || null,
+    metric, // החזרת המדד בתשובה לצורכי בקרה
     data,
   });
 }
