@@ -4,8 +4,8 @@ import DataExplorerView from "@/components/dataexplorer/DataExplorerView";
 import { getDataExplorerOptions } from "@/components/dataexplorer/dataexplorer-service";
 
 export default function DataExplorerPage() {
-  // Options for split / value type / year dropdowns
-  const { splitOptions, contentTypeOptions, yearsOptions } =
+  // Options for metric / value type dropdowns
+  const { splitOptions, contentTypeOptions, statusOptions } =
     getDataExplorerOptions();
 
   return (
@@ -39,8 +39,11 @@ export default function DataExplorerPage() {
         >
           <DataExplorerView
             splitOptions={splitOptions}
+            statusOptions={statusOptions.map((o) => ({
+              label: o.label,
+              value: o.value,
+            }))}
             contentTypeOptions={contentTypeOptions}
-            yearsOptions={yearsOptions}
           />
         </section>
       </div>
