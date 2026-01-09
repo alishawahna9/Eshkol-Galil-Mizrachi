@@ -147,12 +147,13 @@ function buildExplorerTitle(
     subjectText,
     numberText,
     percentText,
+    isGenderDistribution = false,
   }: {
     metricLabel: string;    // Short label that appears in the metric filter (e.g. "לפי נשים").
     subjectText: string;    // Part describing what we rank by (e.g. "מספר הנשים הגבוה ביותר").
     numberText: string;// Text used when showing absolute numbers.
     percentText: string;  // Text used when showing percentages.
-
+    isGenderDistribution?: boolean; // Flag to indicate if this is gender distribution view
   }
 ): string {
   const valueText =
@@ -162,6 +163,11 @@ function buildExplorerTitle(
     municipalStatusLabel && municipalStatusLabel !== "כל המעמדות"
       ? ` - מעמד מוניציפלי: ${municipalStatusLabel}`
       : "";
+
+  // For gender distribution, don't use "10 הרשויות עם" prefix
+  if (isGenderDistribution) {
+    return `${subjectText} ${valueText}${statusSuffix}`;
+  }
 
   return `10 הרשויות עם ${subjectText} ${valueText}${statusSuffix}`;
 }
@@ -350,9 +356,10 @@ export function buildGenderDistributionResult(
 
   const title = buildExplorerTitle(valueKind, municipalStatusLabel, {
     metricLabel: TOP_GENDER_DISTRIBUTION_LABEL,
-    subjectText: "התפלגות האוכלוסייה לפי מגדר",
+    subjectText: "השוואת אוכלוסייה לפי מגדר באשכול גליל מזרחי",
     numberText: "מספר תושבים",
     percentText: "אחוזים מתוך כלל האוכלוסייה",
+    isGenderDistribution: true,
   });
 
   const toValue = (count: number) => {

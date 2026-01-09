@@ -7,13 +7,14 @@ import { TopGenderApiResponse } from "./dataexplorer-service";
 type Props = {
   genderData: TopGenderApiResponse;
   splitBy: string; // Current metric: 'gender_distribution', 'top_women', 'top_men', or 'top_people'
+  municipalStatusLabel?: string; // Label of selected municipal status filter
 };
 
 /**
  * InsightsPanel component - displays automatic insights based on the current data view
  * Generates different insights depending on the selected metric (women/men/people/gender distribution)
  */
-export default function InsightsPanel({ genderData, splitBy }: Props) {
+export default function InsightsPanel({ genderData, splitBy, municipalStatusLabel }: Props) {
   const insights: string[] = []; // Array to store generated insight messages
 
   // Condition: When viewing overall gender distribution across all authorities
@@ -26,9 +27,14 @@ export default function InsightsPanel({ genderData, splitBy }: Props) {
     const womenPercent = ((totalWomen / total) * 100).toFixed(1);
     const menPercent = ((totalMen / total) * 100).toFixed(1);
 
+    // Build status suffix for insights when a specific municipal status is selected
+    const statusSuffix = municipalStatusLabel && municipalStatusLabel !== "כל המעמדות" 
+      ? ` (${municipalStatusLabel})` 
+      : "";
+
     // Insight 1: Total population in the cluster
     insights.push(
-      `באשכול גליל מזרחי יש ${total.toLocaleString("he-IL")} תושבים`
+      `באשכול גליל מזרחי יש ${total.toLocaleString("he-IL")} תושבים${statusSuffix}`
     );
 
     // Insight 2: Gender breakdown with percentages
@@ -54,6 +60,11 @@ export default function InsightsPanel({ genderData, splitBy }: Props) {
     // Generate insights for top authorities view (women/men/people)
     let total = genderData.women.totalWomen;
     let metricName = "נשים"; // Default metric name in Hebrew
+
+    // Build status suffix for insights when a specific municipal status is selected
+    const statusSuffix = municipalStatusLabel && municipalStatusLabel !== "כל המעמדות" 
+      ? ` (${municipalStatusLabel})` 
+      : "";
 
     // Condition: When viewing top 10 authorities by women population
     // Provides: Leading authority stats, gap to 2nd place, top 10 concentration, and size ratio
@@ -151,7 +162,7 @@ export default function InsightsPanel({ genderData, splitBy }: Props) {
         const topSumPercent = ((topSum / total) * 100).toFixed(1);
 
         insights.push(
-          `10 הרשויות המובילות מכילות ${topSumPercent}% מכלל ה${metricName} באשכול`
+          `10 הרשויות המובילות מכילות ${topSumPercent}% מכלל ה${metricName} באשכול${statusSuffix}`
         );
 
         // Condition: If there are exactly 10 authorities (full top 10 list)
@@ -205,7 +216,7 @@ export default function InsightsPanel({ genderData, splitBy }: Props) {
         const topSumPercent = ((topSum / total) * 100).toFixed(1);
 
         insights.push(
-          `10 הרשויות המובילות מכילות ${topSumPercent}% מכלל ה${metricName} באשכול`
+          `10 הרשויות המובילות מכילות ${topSumPercent}% מכלל ה${metricName} באשכול${statusSuffix}`
         );
 
         // Condition: If there are exactly 10 authorities (full top 10 list)
