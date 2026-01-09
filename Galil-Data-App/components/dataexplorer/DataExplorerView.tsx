@@ -250,7 +250,13 @@ export default function DataExplorerView({
 
       {/* Insights Panel */}
       {genderData && (
-        <InsightsPanel genderData={genderData} splitBy={splitBy} />
+        <InsightsPanel
+          genderData={genderData}
+          splitBy={splitBy}
+          municipalStatusLabel={
+            statusOptions.find((opt) => opt.value === municipalStatus)?.label
+          }
+        />
       )}
 
       <div className="flex-1 min-h-0">
