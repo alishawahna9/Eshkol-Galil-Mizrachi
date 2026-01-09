@@ -46,7 +46,7 @@ export default function AuthorityTabs({ tableComponent, onSelectAuthority, selec
         </div>
       </div>
 
-      <div className="mt-6 flex justify-center items-center gap-4 flex-wrap">
+      <div className="mt-8 flex justify-center items-center gap-4 flex-wrap">
         <button onClick={() => setActive("map")} className={`w-[140px] py-3 rounded-lg ${active === "map" ? "bg-sky-400 text-white" : "bg-card border border-border text-foreground"}`}>
           מפה
         </button>
