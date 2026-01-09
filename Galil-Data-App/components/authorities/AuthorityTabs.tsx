@@ -2,7 +2,7 @@
 
 import { useState, ReactNode } from "react";
 import MagamahUnified from "./MagamahUnified";
-import TrendChartCard from "@/components/ui/TrendChartCard";
+import TrendChartWithData from "./TrendChartWithData";
 import ComparisonChart from "./ComparisonChart";
 import MapTab from "@/components/authorities/MapTab";
 
@@ -28,14 +28,7 @@ export default function AuthorityTabs({ tableComponent, onSelectAuthority, selec
 
           {active === "trend" && (
             <div className="h-full w-full">
-              <TrendChartCard
-                className="h-full"
-                title="מגמת הרשויות שנבחרו במדד אוכלוסיה (אנשים) בשנים 2003 - 2023"
-                subtitle={'קובץ רשויות מקומיות, למ"ס'}
-                yLabel="אנשים"
-                xLabel="שנה"
-                series={[]}
-              />
+              <TrendChartWithData selectedAuthority={selectedAuthority} />
             </div>
           )}
 

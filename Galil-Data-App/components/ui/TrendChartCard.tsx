@@ -207,14 +207,7 @@ export default function TrendChartCard({
                         />
                       );
                     })}
-                    <text
-                      x={lx}
-                      y={ly + 4}
-                      fontSize="12"
-                      fill="rgba(75,85,99,1)"
-                    >
-                      {s.name}
-                    </text>
+             
                   </g>
                 );
               })}
