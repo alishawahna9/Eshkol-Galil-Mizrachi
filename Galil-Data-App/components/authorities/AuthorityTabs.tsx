@@ -11,9 +11,11 @@ type Props = {
   tableComponent: ReactNode;
   onSelectAuthority?: (name: string | null) => void;
   selectedAuthority?: string | null;
+  filters?: { domain?: string; search?: string; metric?: string; year?: string; valueType?: string };
+  mapFilters?: { domain?: string; search?: string; metric?: string };
 };
 
-export default function AuthorityTabs({ tableComponent, onSelectAuthority, selectedAuthority }: Props) 
+export default function AuthorityTabs({ tableComponent, onSelectAuthority, selectedAuthority, filters, mapFilters }: Props) 
  {
   const [active, setActive] = useState<string>("map");
 
@@ -23,12 +25,12 @@ export default function AuthorityTabs({ tableComponent, onSelectAuthority, selec
         <div className="h-[520px] w-full">
 
           {/* ✅ MAP TAB */}
-          {active === "map" && <MapTab tableComponent={tableComponent} onSelectAuthority={onSelectAuthority} selectedAuthority={selectedAuthority} />}
+          {active === "map" && <MapTab tableComponent={tableComponent} onSelectAuthority={onSelectAuthority} selectedAuthority={selectedAuthority} filters={mapFilters} />}
 
 
           {active === "trend" && (
             <div className="h-full w-full">
-              <TrendChartWithData selectedAuthority={selectedAuthority} />
+              <TrendChartWithData selectedAuthority={selectedAuthority} filters={filters} />
             </div>
           )}
 
@@ -40,7 +42,7 @@ export default function AuthorityTabs({ tableComponent, onSelectAuthority, selec
 
           {active === "chart" && (
             <div className="h-full w-full flex flex-col">
-              <ComparisonChart />
+              <ComparisonChart filters={filters} />
             </div>
           )}
         </div>

@@ -44,6 +44,31 @@ export default function AuthoritiesFiltersBar() {
         ]}
       />
 
+      <FilterDropdownMenu
+        label="קבוצת גיל"
+        param="ageGroup"
+        options={[
+          { label: "0-4", value: "0_4" },
+          { label: "5-9", value: "5_9" },
+          { label: "10-14", value: "10_14" },
+          { label: "15-19", value: "15_19" },
+          { label: "20-29", value: "20_29" },
+          { label: "30-44", value: "30_44" },
+          { label: "45-59", value: "45_59" },
+          { label: "60-64", value: "60_64" },
+          { label: "65+", value: "65_plus" },
+        ]}
+      />
+
+      <FilterDropdownMenu
+        label="מין"
+        param="gender"
+        options={[
+          { label: "גברים", value: "men" },
+          { label: "נשים", value: "women" },
+        ]}
+      />
+
     </FilterBarBox>
   </div>
   );

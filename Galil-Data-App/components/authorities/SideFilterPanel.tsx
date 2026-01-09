@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { MetricSummaryPanel } from "./MetricSummaryPanel";
 import DomainFilter from "@/components/dataexplorer/DomainFilter";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -27,14 +28,44 @@ export function SideFilterPanel({ onFiltersChange }: { onFiltersChange?: (f: { d
   // חישוב המדד שנבחר כדי להעביר גם את הלייבל שלו לקומפוננטה
   const selectedMetric = METRICS.find((m) => m.key === selectedKey) || METRICS[0];
 
+  const sp = useSearchParams();
+  const router = useRouter();
+  const [applyGlobally, setApplyGlobally] = useState<boolean>(sp.get("globalFilters") === "1");
+
+  function setGlobalFlag(on: boolean) {
+    const next = new URLSearchParams(sp.toString());
+    if (on) {
+      next.set("globalFilters", "1");
+      if (domain) next.set("domain", domain);
+      if (selectedKey) next.set("metric", selectedKey);
+      if (search) next.set("search", search);
+    } else {
+      next.delete("globalFilters");
+      next.delete("domain");
+      next.delete("metric");
+      next.delete("search");
+    }
+    router.replace(`${window.location.pathname}?${next.toString()}`, { scroll: false });
+    setApplyGlobally(on);
+  }
+
   // Debounced notify: notify parent 100ms אחרי שינוי אחרון
   useEffect(() => {
     const id = setTimeout(() => {
-      console.log('SideFilterPanel: notify parent', { domain, search, metric: selectedKey });
+      console.log('SideFilterPanel: notify parent', { domain, search, metric: selectedKey, applyGlobally });
       onFiltersChange?.({ domain, search, metric: selectedKey });
+
+      if (applyGlobally) {
+        const next = new URLSearchParams(sp.toString());
+        next.set("globalFilters", "1");
+        if (domain) next.set("domain", domain); else next.delete("domain");
+        if (selectedKey) next.set("metric", selectedKey); else next.delete("metric");
+        if (search) next.set("search", search); else next.delete("search");
+        router.replace(`${window.location.pathname}?${next.toString()}`, { scroll: false });
+      }
     }, 100);
     return () => clearTimeout(id);
-  }, [domain, search, selectedKey, onFiltersChange]);
+  }, [domain, search, selectedKey, onFiltersChange, applyGlobally, sp, router]);
 
   function handleDomainChange(d: string) {
     console.log('SideFilterPanel: domain changed handler', d);
@@ -66,6 +97,11 @@ export function SideFilterPanel({ onFiltersChange }: { onFiltersChange?: (f: { d
             <TabsContent value="filters" className="space-y-6">
               <div><DomainFilter active={domain as any} onChange={(d) => handleDomainChange(d)} /></div>
               <Button variant="outline" className="w-full">+ מסננים נוספים</Button>
+
+              <div className="flex items-center gap-2 mt-3">
+                <input id="applyGlobally" type="checkbox" checked={applyGlobally} onChange={(e) => setGlobalFlag((e.target as HTMLInputElement).checked)} />
+                <label htmlFor="applyGlobally" className="text-sm">החל על כל הלשוניות</label>
+              </div>
               
               <div className="space-y-2">
                 <label className="text-sm font-medium">חיפוש</label>

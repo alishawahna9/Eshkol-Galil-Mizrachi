@@ -19,11 +19,19 @@ const fallbackRows: Row[] = [
   { label: "קצרין", value: 8043 },
 ];
 
-export default function ComparisonChart() {
+const METRIC_LABELS: Record<string, string> = {
+  total_population: "אוכלוסיה",
+  jews_and_others: "אוכלוסיה – יהודים ואחרים",
+  arabs: "אוכלוסיה – ערבים",
+  muslims: "אוכלוסיה – מוסלמים",
+};
+
+export default function ComparisonChart({ filters }: { filters?: { domain?: string; search?: string; metric?: string; year?: string; valueType?: string } }) {
   const searchParams = useSearchParams();
-  const yearParam = searchParams?.get("year");
+  const yearParam = filters?.year ?? searchParams?.get("year");
   const year = yearParam ? parseInt(yearParam, 10) : 2023;
-  const valueType = (searchParams?.get("valueType") || "number") as "number" | "percent";
+  const valueType = (filters?.valueType || searchParams?.get("valueType") || "number") as "number" | "percent";
+  const metric = filters?.metric || searchParams?.get("metric") || "total_population";
   
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +43,12 @@ export default function ComparisonChart() {
       setError(null);
       
       try {
-        const response = await fetch(`/api/authorities/comparison?year=${year}`);
+        const params = new URLSearchParams();
+        params.set('year', String(year));
+        if (metric) params.set('metric', metric);
+        if (filters?.domain) params.set('domain', filters.domain);
+        if (filters?.search) params.set('search', filters.search);
+        const response = await fetch(`/api/authorities/comparison?${params.toString()}`);
         
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
@@ -96,7 +109,8 @@ export default function ComparisonChart() {
   const valueKind = valueType === "percent" ? "percent" : "number";
   const yLabel = valueType === "percent" ? "אחוז" : "אנשים";
   const valueUnit = valueType === "percent" ? "אחוזים" : "אנשים";
-  const title = `השוואת הרשויות במדד אוכלוסיה (${valueUnit}) בשנת ${year}`;
+  const metricLabel = METRIC_LABELS[metric] || "מדד";
+  const title = `השוואת הרשויות במדד ${metricLabel} (${valueUnit}) בשנת ${year}`;
 
   return (
     <BarChartCard

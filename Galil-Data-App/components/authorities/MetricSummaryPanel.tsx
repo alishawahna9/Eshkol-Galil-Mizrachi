@@ -27,11 +27,6 @@ export function MetricSummaryPanel({ metricKey, metricLabel }: MetricSummaryPane
             {/* לדוגמה: data[metricKey] */}
             195,778
           </div>
-          
-          {/* לצורך דיבאג בלבד - אפשר למחוק אחר כך */}
-          <div className="text-xs text-red-400">
-            (שדה בטבלה: {metricKey})
-          </div>
         </div>
 
         <div className="text-center text-sm text-muted-foreground">

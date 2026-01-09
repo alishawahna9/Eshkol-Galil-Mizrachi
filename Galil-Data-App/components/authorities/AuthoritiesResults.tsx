@@ -20,7 +20,7 @@ export default function AuthoritiesResults({ filters, selectedAuthority }: { fil
 
   const METRIC_LABELS: Record<string, string> = {
     total_population: "אוכלוסייה כוללת",
-    jews_and_others: "אוכלוסיה – יהודים ואחרים",
+    jews_and_others: "יהודים ואחרים",
     arabs: "אוכלוסיה – ערבים",
     muslims: "אוכלוסיה – מוסלמים",
   };
@@ -53,34 +53,45 @@ export default function AuthoritiesResults({ filters, selectedAuthority }: { fil
   }, [filters?.search, filters?.domain, filters?.metric, filters?.year, filters?.valueType, selectedAuthority]);
 
   return (
-    <div className="rounded-xl border bg-white p-2 shadow-sm h-full min-h-0 overflow-hidden text-foreground">
-      {/* Use project's ScrollArea for nicer scrollbar inside rounded container */}
-      <div className="h-full">
+    <div className="rounded-xl border bg-white p-2 shadow-sm h-full min-h-0 overflow-hidden text-foreground flex flex-col">
+      {/* Header outside ScrollArea so it stays fixed */}
+      <table dir="rtl" className="table-fixed min-w-full">
+        <colgroup>
+          <col style={{ width: '70%' }} />
+          <col style={{ width: '30%' }} />
+        </colgroup>
+        <thead>
+          <tr className="border-b border-border bg-white">
+            <th className="text-right font-semibold whitespace-normal p-2">שם הרשות</th>
+            {filters?.metric === "arabs" ? (
+              <th className="text-right font-semibold whitespace-normal p-2">ערבים</th>
+            ) : filters?.metric === "muslims" ? (
+              <th className="text-right font-semibold whitespace-normal p-2">מוסלמים</th>
+            ) : (
+              <th className="text-right font-semibold whitespace-normal p-2">{metricLabel}</th>
+            )}
+          </tr>
+        </thead>
+      </table>
+
+      {/* Scrollable content */}
+      <div className="h-full min-h-0 overflow-auto flex-1">
         <ScrollArea className="h-full rounded-[inherit] bg-white">
           <Table dir="rtl" className="table-fixed min-w-full">
-            {/* when metric === 'arabs' we show two numeric columns: Arabs and Muslims */}
-            {filters?.metric === "arabs" ? (
-              <colgroup>
-                <col style={{ width: '56%' }} />
-                <col style={{ width: '22%' }} />
-                <col style={{ width: '22%' }} />
-              </colgroup>
-            ) : (
-              <colgroup>
-                <col style={{ width: '70%' }} />
-                <col style={{ width: '30%' }} />
-              </colgroup>
-            )}
+            {/* Show one column for metric */}
+            <colgroup>
+              <col style={{ width: '70%' }} />
+              <col style={{ width: '30%' }} />
+            </colgroup>
 
             <TableCaption>רשימת רשויות ואוכלוסייה.</TableCaption>
-            <TableHeader className="sticky">
-              <TableRow className="border-b border-border">
-                <TableHead className="text-right font-semibold sticky top-0 bg-white/95 backdrop-blur-sm z-20 whitespace-normal">שם הרשות</TableHead>
+            <TableHeader>
+              <TableRow className="border-b border-border" style={{display: 'none'}}>
+                <TableHead className="text-right font-semibold whitespace-normal">שם הרשות</TableHead>
                 {filters?.metric === "arabs" ? (
-                  <>
-                    <TableHead className="text-right font-semibold sticky top-0 bg-white/95 backdrop-blur-sm z-20 whitespace-normal">ערבים</TableHead>
-                    <TableHead className="text-right font-semibold sticky top-0 bg-white/95 backdrop-blur-sm z-20 whitespace-normal">מוסלמים</TableHead>
-                  </>
+                  <TableHead className="text-right font-semibold sticky top-0 bg-white/95 backdrop-blur-sm z-20 whitespace-normal">ערבים</TableHead>
+                ) : filters?.metric === "muslims" ? (
+                  <TableHead className="text-right font-semibold sticky top-0 bg-white/95 backdrop-blur-sm z-20 whitespace-normal">מוסלמים</TableHead>
                 ) : (
                   <TableHead className="text-right font-semibold sticky top-0 bg-white/95 backdrop-blur-sm z-20 whitespace-normal">{metricLabel}</TableHead>
                 )}
@@ -89,7 +100,7 @@ export default function AuthoritiesResults({ filters, selectedAuthority }: { fil
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={filters?.metric === "arabs" ? 3 : 2} className="h-24 text-center">
+                  <TableCell colSpan={2} className="h-24 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <Loader2 className="size-4 animate-spin text-primary" />
                       <span className="text-sm text-muted-foreground">טוען…</span>
@@ -98,17 +109,16 @@ export default function AuthoritiesResults({ filters, selectedAuthority }: { fil
                 </TableRow>
               ) : error ? (
                 <TableRow>
-                  <TableCell colSpan={filters?.metric === "arabs" ? 3 : 2} className="h-24 text-center">{error}</TableCell>
+                  <TableCell colSpan={2} className="h-24 text-center">{error}</TableCell>
                 </TableRow>
               ) : data.length > 0 ? (
                 data.map((item) => (
                   <TableRow key={item.name} className={selectedAuthority && item.name === selectedAuthority ? "bg-sky-50" : ""}>
                     <TableCell className="font-medium whitespace-normal">{item.name}</TableCell>
                     {filters?.metric === "arabs" ? (
-                      <>
-                        <TableCell className="whitespace-normal">{(item.arabsCount ?? 0).toLocaleString()}</TableCell>
-                        <TableCell className="whitespace-normal">{(item.muslimsCount ?? 0).toLocaleString()}</TableCell>
-                      </>
+                      <TableCell className="whitespace-normal">{(item.arabsCount ?? 0).toLocaleString()}</TableCell>
+                    ) : filters?.metric === "muslims" ? (
+                      <TableCell className="whitespace-normal">{(item.muslimsCount ?? 0).toLocaleString()}</TableCell>
                     ) : (
                       <TableCell className="whitespace-normal">{item.metricValue.toLocaleString()}</TableCell>
                     )}
@@ -116,7 +126,7 @@ export default function AuthoritiesResults({ filters, selectedAuthority }: { fil
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={filters?.metric === "arabs" ? 3 : 2} className="h-24 text-center">לא נמצאו תוצאות.</TableCell>
+                  <TableCell colSpan={2} className="h-24 text-center">לא נמצאו תוצאות.</TableCell>
                 </TableRow>
               )}
             </TableBody>
