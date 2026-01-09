@@ -9,11 +9,20 @@ export async function GET(request: Request) {
     const startYear = parseInt(url.searchParams.get("startYear") || "2003", 10);
     const endYear = parseInt(url.searchParams.get("endYear") || "2023", 10);
     const limit = url.searchParams.get("limit"); // Optional: limit number of authorities
+    const metric = url.searchParams.get("metric") || "total_population";
 
     // Validate years
     if (isNaN(startYear) || isNaN(endYear) || startYear > endYear) {
       return NextResponse.json(
         { error: "Invalid year range" },
+        { status: 400 }
+      );
+    }
+
+    // Only population time series is currently supported for trend
+    if (metric !== "total_population") {
+      return NextResponse.json(
+        { error: "Metric trend not supported", metric },
         { status: 400 }
       );
     }
@@ -27,12 +36,22 @@ export async function GET(request: Request) {
     };
 
     // If specific authorities are requested, filter by them
+    const search = url.searchParams.get("search");
+    const domain = url.searchParams.get("domain");
+
     if (authoritiesParam) {
       const authorityNames = authoritiesParam.split(",").map((a) => a.trim());
       where.authority = {
         in: authorityNames,
       };
+    } else if (search) {
+      // Partial case-insensitive match on authority name
+      where.authority = { contains: search, mode: "insensitive" };
     }
+
+    // Note: `metric` and `domain` are accepted but currently handled client-side or via specialized endpoints
+    // For future: implement metric mapping to different source tables (demographics etc.)
+
 
     // Fetch population data
     const populationData = await prisma.populationData.findMany({

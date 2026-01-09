@@ -9,11 +9,13 @@ type Series = { name: string; points: Point[] };
 
 type Props = {
   selectedAuthority?: string | null;
+  filters?: { domain?: string; search?: string; metric?: string; year?: string; valueType?: string };
 };
 
-export default function TrendChartWithData({ selectedAuthority }: Props) {
+export default function TrendChartWithData({ selectedAuthority, filters }: Props) {
   const searchParams = useSearchParams();
-  const valueType = (searchParams?.get("valueType") || "number") as "number" | "percent";
+  const valueType = (filters?.valueType ?? searchParams?.get("valueType") ?? "number") as "number" | "percent";
+  const metric = filters?.metric ?? searchParams?.get("metric") ?? "total_population";
   
   const [series, setSeries] = useState<Series[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +31,14 @@ export default function TrendChartWithData({ selectedAuthority }: Props) {
         const params = new URLSearchParams();
         params.set("startYear", "2003");
         params.set("endYear", "2023");
+
+        const effectiveMetric = metric;
+        const effectiveDomain = filters?.domain ?? searchParams.get("domain");
+        const effectiveSearch = filters?.search ?? searchParams.get("search");
+
+        if (effectiveMetric) params.set("metric", effectiveMetric);
+        if (effectiveDomain) params.set("domain", effectiveDomain);
+        if (effectiveSearch) params.set("search", effectiveSearch);
         
         // If a specific authority is selected, fetch only that one
         if (selectedAuthority) {
@@ -90,7 +100,15 @@ export default function TrendChartWithData({ selectedAuthority }: Props) {
     };
 
     fetchData();
-  }, [selectedAuthority, valueType]);
+  }, [selectedAuthority, valueType, metric, filters?.domain, filters?.search]);
+
+  if (metric !== "total_population") {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-muted-foreground">מדד זה אינו נתמך לתצוגת מגמה. בחר מדד אוכלוסיה.</p>
+      </div>
+    );
+  }
 
   const yLabel = valueType === "percent" ? "אחוז" : "אנשים";
   const valueUnit = valueType === "percent" ? "אחוזים" : "אנשים";

@@ -7,6 +7,8 @@ export type AuthorityData = {
   totalPopulation: number;
   metricValue: number;
   municipalStatus?: string | null;
+  arabsCount?: number;
+  muslimsCount?: number;
 };
 
 export async function getAuthoritiesStats(filters?: { search?: string; domain?: string; metric?: string; municipalStatus?: string }): Promise<AuthorityData[]> {

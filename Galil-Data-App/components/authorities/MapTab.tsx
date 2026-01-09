@@ -6,7 +6,7 @@ import AuthoritiesMap from "@/components/authorities/AuthoritiesMap";
 
 type PopRow = { authority: string; year: number; value: number };
 
-export default function MapTab({ tableComponent, onSelectAuthority, selectedAuthority }: { tableComponent?: React.ReactNode; onSelectAuthority?: (name: string | null) => void; selectedAuthority?: string | null }) {
+export default function MapTab({ tableComponent, onSelectAuthority, selectedAuthority, filters }: { tableComponent?: React.ReactNode; onSelectAuthority?: (name: string | null) => void; selectedAuthority?: string | null; filters?: { domain?: string; search?: string; metric?: string } }) {
   const sp = useSearchParams();
 
 
@@ -27,13 +27,9 @@ export default function MapTab({ tableComponent, onSelectAuthority, selectedAuth
 
   return (
     <div className="w-full h-full" dir="rtl">
-      <div className="mb-2 text-xs text-muted-foreground">
-        השנה לפי ה-URL: year={year}
-      </div>
-
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[520px_1fr] h-[470px]">
         {/* Table */}
-        <div className="rounded-xl border bg-background p-3 overflow-auto">
+        <div className="rounded-xl bg-background p-3 overflow-auto">
           {/* Show current selection and allow clearing it */}
           {selectedAuthority ? (
             <div className="flex items-center justify-between mb-2">

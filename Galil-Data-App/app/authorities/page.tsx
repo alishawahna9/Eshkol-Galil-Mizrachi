@@ -21,6 +21,8 @@ export default function AuthoritiesPage({
   const valueType = sp.get("valueType") ?? sp.get("valueType") ?? sp.get("valueType") ?? sp.get("valueType") ?? sp.get("valueType") ?? sp.get("valueType") ?? sp.get("valueType") ?? sp.get("valueType") ?? undefined; // ensure defined
 
   const mergedFilters = { ...filters, year, valueType };
+  // For map tab, we don't include year and valueType filters
+  const mapFilters = { ...filters };
 
   return (
     <div className="mt-6">
@@ -37,7 +39,7 @@ export default function AuthoritiesPage({
 
               {/* לשונית/גרפים */}
               <div className="mt-6">
-                <AuthorityTabs tableComponent={<AuthoritiesResults filters={filters} selectedAuthority={selectedAuthority} />} onSelectAuthority={setSelectedAuthority} selectedAuthority={selectedAuthority} />
+                <AuthorityTabs filters={mergedFilters} mapFilters={mapFilters} tableComponent={<AuthoritiesResults filters={filters} selectedAuthority={selectedAuthority} />} onSelectAuthority={setSelectedAuthority} selectedAuthority={selectedAuthority} />
               </div>
             </div>
           </div>
