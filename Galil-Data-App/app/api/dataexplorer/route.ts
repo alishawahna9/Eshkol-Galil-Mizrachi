@@ -6,7 +6,7 @@ import {
 	TopGenderApiResponse,
 	createTopWomenResponse,
 	createTopMenResponse,
-  createTopPeopleResponse,
+  	createTopPeopleResponse,
 } from "@/components/dataexplorer/dataexplorer-service";
 
 // GET /api/dataexplorer
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 				symbol: true,
 			},
 			where: {
-				...(symbolFilter && { symbol: { in: symbolFilter } }),
+				...(symbolFilter ? { symbol: { in: symbolFilter } } : {}),
 				OR: [
 					{ women: { not: null } },
 					{ men: { not: null } },

@@ -5,11 +5,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Table2 } from "lucide-react";
+import { BarChart3, Table2, FileDown } from "lucide-react";
 
 import FilterDropdown from "@/components/FilterDropdown";
 import GlilElectricityTable from "@/components/dataexplorer/GlilElectricityTable";
 import BarChartCard from "@/components/authorities/BarChartCard";
+import InsightsPanel from "@/components/dataexplorer/InsightsPanel";
+import { exportDataExplorerReport } from "@/components/dataexplorer/export-dataexplorer";
 import {
   buildWomenDataExplorerResult,
   buildMenDataExplorerResult,
@@ -85,6 +87,12 @@ export default function DataExplorerView({
     setValueKind("number");
   }
 
+  // Export current chart/table to Excel file
+  function exportCurrentReport() {
+    if (!result || !genderData) return;
+    exportDataExplorerReport({ result, genderData, splitBy });
+  }
+
   // Recalculate chart/table data whenever filters change
   const result = useMemo(() => {
     if (!genderData) return null;
@@ -136,11 +144,11 @@ export default function DataExplorerView({
     // Tabs between chart view and table view
     <Tabs defaultValue="bar" className="flex flex-col flex-1 w-full">
       {/* Filter card: title, clear button, and three dropdowns */}
-      <Card dir="rtl" className="w-8/9 mt-6 mb-4">
+      <Card dir="rtl" className="w-full mt-6 mb-4 mx-auto">
         <CardHeader className="pb-2 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <CardTitle className="text-base font-bold">תפריט סינון</CardTitle>
-            <aside className="mr-1">
+            <aside className="mr-1 flex gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -149,6 +157,16 @@ export default function DataExplorerView({
                 onClick={clearFilters}
               >
                 נקה סינון
+              </Button>
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                className="cursor-pointer gap-2"
+                onClick={exportCurrentReport}
+              >
+                <FileDown className="w-4 h-4" />
+                ייצא דוח
               </Button>
             </aside>
           </div>
@@ -230,10 +248,15 @@ export default function DataExplorerView({
         </CardContent>
       </Card>
 
+      {/* Insights Panel */}
+      {genderData && (
+        <InsightsPanel genderData={genderData} splitBy={splitBy} />
+      )}
+
       <div className="flex-1 min-h-0">
         <TabsContent value="bar">
           {/* Bar chart view (main visualization) */}
-          <div className="h-full min-h-150 w-8/9 rounded-xl flex p-4">
+          <div className="h-full min-h-150 w-full rounded-xl flex p-4">
             {/* BarChartCard renders the chart based on the calculated result */}
             {result ? (
               <BarChartCard
