@@ -18,11 +18,7 @@ export default function AuthoritiesPage({
 
   const sp = useSearchParams();
   const year = sp.get("year") ?? undefined;
-  const valueType = sp.get("valueType") ?? sp.get("valueType") ?? sp.get("valueType") ?? sp.get("valueType") ?? sp.get("valueType") ?? sp.get("valueType") ?? sp.get("valueType") ?? sp.get("valueType") ?? undefined; // ensure defined
-
-  const mergedFilters = { ...filters, year, valueType };
-  // For map tab, we don't include year and valueType filters
-  const mapFilters = { ...filters };
+  const valueType = sp.get("valueType") ?? undefined;
 
   return (
     <div className="mt-6">
@@ -33,13 +29,12 @@ export default function AuthoritiesPage({
 
         <main>
           <div className="w-full pt-6 ">
-            <AuthoritiesFiltersBar />
 
             <div className="mt-6 max-w-275">
 
               {/* לשונית/גרפים */}
               <div className="mt-6">
-                <AuthorityTabs filters={mergedFilters} mapFilters={mapFilters} tableComponent={<AuthoritiesResults filters={filters} selectedAuthority={selectedAuthority} />} onSelectAuthority={setSelectedAuthority} selectedAuthority={selectedAuthority} />
+                <AuthorityTabs tableComponent={<AuthoritiesResults filters={filters} selectedAuthority={selectedAuthority} />} onSelectAuthority={setSelectedAuthority} selectedAuthority={selectedAuthority} />
               </div>
             </div>
           </div>

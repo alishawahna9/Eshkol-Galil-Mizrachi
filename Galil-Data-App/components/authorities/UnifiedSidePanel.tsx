@@ -9,23 +9,21 @@ import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 
 export function UnifiedSidePanel() {
-  const [tab, setTab] = useState<"metric" | "authorities">("metric");
+  const [tab, setTab] = useState<"metric" | "authorities">("authorities");
 
   return (
     <Card className="h-fit" dir="rtl">
-      <CardHeader>
-        <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+      <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+        <CardHeader>
           <TabsList className="grid grid-cols-2 w-full">
             <TabsTrigger value="metric">בחירת מדד</TabsTrigger>
             <TabsTrigger value="authorities">בחירת רשויות</TabsTrigger>
           </TabsList>
-        </Tabs>
-      </CardHeader>
+        </CardHeader>
 
-      <CardContent>
-        <Tabs value={tab}>
+        <CardContent>
           <TabsContent value="metric">
-            <MetricSummaryPanel />
+            <MetricSummaryPanel metricKey="total_population" metricLabel="אוכלוסיה" />
           </TabsContent>
 
           <TabsContent value="authorities" className="space-y-6">
@@ -67,8 +65,8 @@ export function UnifiedSidePanel() {
               </label>
             </div>
           </TabsContent>
-        </Tabs>
-      </CardContent>
+        </CardContent>
+      </Tabs>
     </Card>
   );
 }
