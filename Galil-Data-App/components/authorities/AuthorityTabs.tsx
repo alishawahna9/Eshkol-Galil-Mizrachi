@@ -1,53 +1,47 @@
 "use client";
 
 import { useState, ReactNode } from "react";
-import MagamahUnified from "./MagamahUnified";
-import TrendChartWithData from "./TrendChartWithData";
-import ComparisonChart from "./ComparisonChart";
-import MapTab from "@/components/authorities/MapTab";
+import MapTabPanel from "./tabs/MapTabPanel";
+import TrendTabPanel from "./tabs/TrendTabPanel";
+import TrendUnifiedTabPanel from "./tabs/TrendUnifiedTabPanel";
+import ComparisonTabPanel from "./tabs/ComparisonTabPanel";
 
 
 type Props = {
   tableComponent: ReactNode;
   onSelectAuthority?: (name: string | null) => void;
   selectedAuthority?: string | null;
-  filters?: { domain?: string; search?: string; metric?: string; year?: string; valueType?: string };
-  mapFilters?: { domain?: string; search?: string; metric?: string };
 };
 
-export default function AuthorityTabs({ tableComponent, onSelectAuthority, selectedAuthority, filters, mapFilters }: Props) 
+export default function AuthorityTabs({ tableComponent, onSelectAuthority, selectedAuthority }: Props) 
  {
   const [active, setActive] = useState<string>("map");
 
   return (
     <div dir="rtl">
       <div className="mt-6">
-        <div className="h-[520px] w-full">
+        {/* ✅ MAP TAB */}
+        {active === "map" && (
+          <MapTabPanel
+            tableComponent={tableComponent}
+            onSelectAuthority={onSelectAuthority}
+            selectedAuthority={selectedAuthority}
+          />
+        )}
 
-          {/* ✅ MAP TAB */}
-          {active === "map" && <MapTab tableComponent={tableComponent} onSelectAuthority={onSelectAuthority} selectedAuthority={selectedAuthority} filters={mapFilters} />}
+        {/* ✅ TREND TAB */}
+        {active === "trend" && (
+          <TrendTabPanel selectedAuthority={selectedAuthority} />
+        )}
 
+        {/* ✅ TREND UNIFIED TAB */}
+        {active === "trendUnified" && <TrendUnifiedTabPanel />}
 
-          {active === "trend" && (
-            <div className="h-full w-full">
-              <TrendChartWithData selectedAuthority={selectedAuthority} filters={filters} />
-            </div>
-          )}
-
-          {active === "trendUnified" && (
-            <div className="h-full flex items-center justify-center p-4">
-              <MagamahUnified />
-            </div>
-          )}
-
-          {active === "chart" && (
-            <div className="h-full w-full flex flex-col">
-              <ComparisonChart filters={filters} />
-            </div>
-          )}
-        </div>
+        {/* ✅ COMPARISON TAB */}
+        {active === "chart" && <ComparisonTabPanel />}
       </div>
 
+      {/* ✅ NAVIGATION BUTTONS */}
       <div className="mt-8 flex justify-center items-center gap-4 flex-wrap">
         <button onClick={() => setActive("map")} className={`w-[140px] py-3 rounded-lg ${active === "map" ? "bg-sky-400 text-white" : "bg-card border border-border text-foreground"}`}>
           מפה
