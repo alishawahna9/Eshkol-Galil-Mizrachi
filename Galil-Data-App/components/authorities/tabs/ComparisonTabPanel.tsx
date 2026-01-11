@@ -2,18 +2,24 @@
 
 import { useState } from "react";
 import ComparisonChart from "@/components/authorities/ComparisonChart";
-import AuthoritiesTopFilterBar from "@/components/authorities/AuthoritiesTopFilterBar";
 
-type Props = {};
+type Filters = {
+  search?: string;
+  metric?: string;
+  year?: string;
+  ageGroup?: string;
+  gender?: string;
+  valueType?: string;
+};
 
-export default function ComparisonTabPanel() {
-  const [filters, setFilters] = useState<{ domain?: string; search?: string; metric?: string; year?: string; valueType?: string }>({ domain: "", search: "", metric: "", year: "", valueType: "" });
-
+export default function ComparisonTabPanel({ filters }: { filters?: Filters }) {
   return (
     <div>
-      <AuthoritiesTopFilterBar />
-      <div className="h-[520px] w-full mt-4 flex flex-col">
-        <ComparisonChart filters={filters} />
+      {/* Chart Container */}
+      <div className="mt-4">
+        <div className="h-145 w-full rounded-2xl bg-white border p-4 flex flex-col">
+          <ComparisonChart filters={filters} />
+        </div>
       </div>
     </div>
   );

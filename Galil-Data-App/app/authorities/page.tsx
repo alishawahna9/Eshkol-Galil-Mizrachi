@@ -7,13 +7,9 @@ import AuthoritiesFiltersBar from "@/components/authorities/AuthoritiesFiltersBa
 import AuthorityTabs from "../../components/authorities/AuthorityTabs";
 import AuthoritiesResults from "@/components/authorities/AuthoritiesResults"; // הייבוא החדש
 
-export default function AuthoritiesPage({
-  searchParams,
-}: {
-  searchParams: Record<string, string | undefined>;
-}) {
+export default function AuthoritiesPage() {
   // מחקנו את ה-tableData הישן כי הטבלה החדשה שולפת מידע בעצמה
-  const [filters, setFilters] = useState<{ domain?: string; search?: string; metric?: string; year?: string; valueType?: string }>({ domain: "localAuthorities", metric: "total_population" });
+  const [filters, setFilters] = useState<{ search?: string; metric?: string; year?: string; valueType?: string; ageGroup?: string; gender?: string }>({ metric: "total_population", year: "2023" });
   const [selectedAuthority, setSelectedAuthority] = useState<string | null>(null);
 
   const sp = useSearchParams();

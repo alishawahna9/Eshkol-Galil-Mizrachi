@@ -138,6 +138,7 @@ export default function TrendChartWithData({ selectedAuthority, filters }: Props
       yLabel={yLabel}
       xLabel="שנה"
       series={series}
+      variant="bare"
     />
   );
 }

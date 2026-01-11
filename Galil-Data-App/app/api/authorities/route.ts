@@ -9,8 +9,11 @@ export async function GET(request: Request) {
     const domain = url.searchParams.get("domain") || undefined;
     const metric = url.searchParams.get("metric") || undefined;
     const municipalStatus = url.searchParams.get("municipalStatus") || undefined;
+    const year = url.searchParams.get("year") || undefined;
+    const ageGroup = url.searchParams.get("ageGroup") || undefined;
+    const gender = url.searchParams.get("gender") || undefined;
 
-    const filters = { search, domain, metric, municipalStatus };
+    const filters = { search, domain, metric, municipalStatus, year, ageGroup, gender };
 
     // קריאה לפונקציה שכתבת עם פילטרים
     const data = await getAuthoritiesStats(filters);

@@ -1,13 +1,20 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { MetricSummaryPanel } from "./MetricSummaryPanel";
-import DomainFilter from "@/components/dataexplorer/DomainFilter";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search, SlidersHorizontal, Users } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // הגדרת המדדים: Key = שם השדה בטבלה, Label = מה רואה המשתמש
 const METRICS = [
@@ -17,116 +24,250 @@ const METRICS = [
   { key: "muslims", label: "אוכלוסיה – מוסלמים" },
 ];
 
-export function SideFilterPanel({ onFiltersChange }: { onFiltersChange?: (f: { domain?: string; search?: string; metric?: string }) => void }) {
-  // אנו שומרים ב-State את המפתח האמיתי (למשל 'total_population')
-  const [selectedKey, setSelectedKey] = useState<string>(METRICS[0].key);
+const YEARS = Array.from({ length: 22 }, (_, idx) => 2002 + idx)
+  .map(String)
+  .reverse();
 
-  // domain + search state עבור הפילטרים
-  const [domain, setDomain] = useState<string>("localAuthorities");
-  const [search, setSearch] = useState<string>("");
+const AGE_GROUPS = [
+  { value: "0_4", label: "0-4" },
+  { value: "5_9", label: "5-9" },
+  { value: "10_14", label: "10-14" },
+  { value: "15_19", label: "15-19" },
+  { value: "20_29", label: "20-29" },
+  { value: "30_44", label: "30-44" },
+  { value: "45_59", label: "45-59" },
+  { value: "60_64", label: "60-64" },
+  { value: "65_plus", label: "65+" },
+];
 
-  // חישוב המדד שנבחר כדי להעביר גם את הלייבל שלו לקומפוננטה
-  const selectedMetric = METRICS.find((m) => m.key === selectedKey) || METRICS[0];
+const GENDERS = [
+  { value: "men", label: "גברים" },
+  { value: "women", label: "נשים" },
+];
 
-  const sp = useSearchParams();
+type Filters = {
+  search?: string;
+  metric?: string;
+  year?: string;
+  ageGroup?: string;
+  gender?: string;
+  valueType?: string;
+};
+
+export function SideFilterPanel({ onFiltersChange }: { onFiltersChange?: (f: Filters) => void }) {
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const [applyGlobally, setApplyGlobally] = useState<boolean>(sp.get("globalFilters") === "1");
 
-  function setGlobalFlag(on: boolean) {
-    const next = new URLSearchParams(sp.toString());
-    if (on) {
-      next.set("globalFilters", "1");
-      if (domain) next.set("domain", domain);
-      if (selectedKey) next.set("metric", selectedKey);
-      if (search) next.set("search", search);
+  const [search, setSearch] = useState<string>("");
+  const [metricKey, setMetricKey] = useState<string>(METRICS[0].key);
+  const [year, setYear] = useState<string>(searchParams.get("year") ?? "2023");
+  const [ageGroup, setAgeGroup] = useState<string>(searchParams.get("ageGroup") ?? "none");
+  const [gender, setGender] = useState<string>(searchParams.get("gender") ?? "none");
+  const valueType = "number";
+  const [view, setView] = useState<"population" | "filters">("filters");
+
+  const selectedMetric = useMemo(
+    () => METRICS.find((m) => m.key === metricKey) || METRICS[0],
+    [metricKey]
+  );
+
+  function updateQueryParam(key: string, value: string) {
+    const next = new URLSearchParams(searchParams.toString());
+    if (value) {
+      next.set(key, value);
     } else {
-      next.delete("globalFilters");
-      next.delete("domain");
-      next.delete("metric");
-      next.delete("search");
+      next.delete(key);
     }
-    router.replace(`${window.location.pathname}?${next.toString()}`, { scroll: false });
-    setApplyGlobally(on);
+    router.replace(`${window.location.pathname}?${next.toString()}`, {
+      scroll: false,
+    });
   }
 
-  // Debounced notify: notify parent 100ms אחרי שינוי אחרון
+  // Notify parent on change with a short debounce
   useEffect(() => {
     const id = setTimeout(() => {
-      console.log('SideFilterPanel: notify parent', { domain, search, metric: selectedKey, applyGlobally });
-      onFiltersChange?.({ domain, search, metric: selectedKey });
-
-      if (applyGlobally) {
-        const next = new URLSearchParams(sp.toString());
-        next.set("globalFilters", "1");
-        if (domain) next.set("domain", domain); else next.delete("domain");
-        if (selectedKey) next.set("metric", selectedKey); else next.delete("metric");
-        if (search) next.set("search", search); else next.delete("search");
-        router.replace(`${window.location.pathname}?${next.toString()}`, { scroll: false });
-      }
+      onFiltersChange?.({
+        search,
+        metric: metricKey,
+        year,
+        ageGroup,
+        gender,
+        valueType,
+      });
     }, 100);
     return () => clearTimeout(id);
-  }, [domain, search, selectedKey, onFiltersChange, applyGlobally, sp, router]);
-
-  function handleDomainChange(d: string) {
-    console.log('SideFilterPanel: domain changed handler', d);
-    setDomain(d);
-  }
+  }, [search, metricKey, year, ageGroup, gender, valueType, onFiltersChange]);
 
   return (
     <div className="p-6">
-      <Card className="h-fit">
+      <Card
+        className="h-fit border border-slate-200 bg-gradient-to-b from-slate-50 to-white"
+        dir="rtl"
+      >
         <CardHeader>
-          <CardTitle>בחירת מדד</CardTitle>
+          <div className="flex flex-col items-center gap-4 w-full mb-2">
+            <div className="w-full text-center border-b border-slate-100 pb-3">
+              <CardTitle className="text-2xl font-extrabold text-slate-800 tracking-tight">
+                סינון ופילטרים
+              </CardTitle>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 w-full px-1">
+              <Button
+                type="button"
+                variant={view === "filters" ? "default" : "outline"}
+                size="lg"
+                className="w-full justify-center rounded-full py-2.5 text-base font-semibold shadow-sm"
+                onClick={() => setView("filters")}
+              >
+                <SlidersHorizontal className="w-4 h-4 ml-2" />
+                סינון
+              </Button>
+              <Button
+                type="button"
+                variant={view === "population" ? "default" : "outline"}
+                size="lg"
+                className="w-full justify-center rounded-full py-2.5 text-base font-semibold shadow-sm"
+                onClick={() => setView("population")}
+              >
+                <Users className="w-4 h-4 ml-2" />
+                אוכלוסיה
+              </Button>
+            </div>
+          </div>
         </CardHeader>
 
-        <CardContent>
-          <Tabs defaultValue="metric" dir="rtl" className="w-full">
-            <TabsList className="grid grid-cols-2 mb-6">
-              <TabsTrigger value="metric">בחירת מדד</TabsTrigger>
-              <TabsTrigger value="filters">בחירת רשויות</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="metric" className="space-y-6">
-              {/* אנו מעבירים כעת שני דברים: את המפתח לנתונים, ואת השם לתצוגה */}
-              <MetricSummaryPanel 
-                metricKey={selectedMetric.key} 
-                metricLabel={selectedMetric.label} 
-              />
-            </TabsContent>
-
-            <TabsContent value="filters" className="space-y-6">
-              <div><DomainFilter active={domain as any} onChange={(d) => handleDomainChange(d)} /></div>
-              <Button variant="outline" className="w-full">+ מסננים נוספים</Button>
-
-              <div className="flex items-center gap-2 mt-3">
-                <input id="applyGlobally" type="checkbox" checked={applyGlobally} onChange={(e) => setGlobalFlag((e.target as HTMLInputElement).checked)} />
-                <label htmlFor="applyGlobally" className="text-sm">החל על כל הלשוניות</label>
-              </div>
-              
+        <CardContent className="space-y-7 pt-0">
+          {view === "population" ? (
+            <MetricSummaryPanel metricKey={selectedMetric.key} metricLabel={selectedMetric.label} />
+          ) : (
+            <>
               <div className="space-y-2">
-                <label className="text-sm font-medium">חיפוש</label>
-                <Input value={search} onChange={(e) => setSearch((e.target as HTMLInputElement).value)} placeholder="חיפוש" />
+                <label className="text-sm font-medium">חיפוש רשות</label>
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch((e.target as HTMLInputElement).value)}
+                  placeholder="חיפוש"
+                  className="h-11 text-base"
+                />
               </div>
 
-              <div className="space-y-3 text-sm">
-                <div className="font-medium">בחירת מדד לתחקור</div>
+              <Tabs defaultValue="years" className="w-full" dir="rtl">
+                <TabsList className="grid grid-cols-3 gap-2 mb-5 bg-transparent p-0">
+                  <TabsTrigger
+                    value="years"
+                    className="rounded-full text-base px-4 py-2.5 transition-colors data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
+                    שנים
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="population"
+                    className="rounded-full text-base px-4 py-2.5 transition-colors data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
+                    אוכלוסייה
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="group"
+                    className="rounded-full text-base px-4 py-2.5 transition-colors data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
+                    גיל ומין
+                  </TabsTrigger>
+                </TabsList>
 
-                {/* יצירת כפתורי הרדיו בלולאה (נקי ומסודר) */}
-                {METRICS.map((metric) => (
-                  <label key={metric.key} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="metric"
-                      value={metric.key}
-                      checked={selectedKey === metric.key}
-                      onChange={() => setSelectedKey(metric.key)}
-                    />
-                    <span>{metric.label}</span>
-                  </label>
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
+                <TabsContent value="years" className="space-y-3">
+                  <div className="text-sm font-semibold">סינון לפי שנים</div>
+                  <Select
+                    value={year}
+                    onValueChange={(v) => {
+                      setYear(v);
+                      updateQueryParam("year", v);
+                    }}
+                  >
+                    <SelectTrigger className="w-full justify-between text-right h-11 text-base">
+                      <SelectValue placeholder="בחר שנה" />
+                    </SelectTrigger>
+                    <SelectContent position="popper" align="end">
+                      <SelectItem value="none" className="text-right font-semibold">
+                        ללא סינון (כל השנים)
+                      </SelectItem>
+                      {YEARS.map((y) => (
+                        <SelectItem key={y} value={y} className="text-right">
+                          {y}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </TabsContent>
+
+                <TabsContent value="population" className="space-y-3">
+                  <div className="text-sm font-semibold">סינון לפי אוכלוסיה</div>
+                  <div className="space-y-2 text-sm">
+                    {METRICS.map((metric) => (
+                      <label key={metric.key} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="metric"
+                          value={metric.key}
+                          checked={metricKey === metric.key}
+                          onChange={() => setMetricKey(metric.key)}
+                        />
+                        <span>{metric.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="group" className="space-y-3">
+                  <div className="text-sm font-semibold">סינון לפי קבוצה</div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Select
+                      value={ageGroup}
+                      onValueChange={(v) => {
+                        setAgeGroup(v);
+                        updateQueryParam("ageGroup", v);
+                      }}
+                    >
+                      <SelectTrigger className="w-full justify-between text-right h-11 text-base">
+                        <SelectValue placeholder="בחר קבוצת גיל" />
+                      </SelectTrigger>
+                      <SelectContent position="popper" align="end">
+                        <SelectItem value="none" className="text-right font-semibold">
+                          ללא סינון (כל הגילאים)
+                        </SelectItem>
+                        {AGE_GROUPS.map((ag) => (
+                          <SelectItem key={ag.value} value={ag.value} className="text-right">
+                            {ag.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Select
+                      value={gender}
+                      onValueChange={(v) => {
+                        setGender(v);
+                        updateQueryParam("gender", v);
+                      }}
+                    >
+                      <SelectTrigger className="w-full justify-between text-right h-11 text-base">
+                        <SelectValue placeholder="בחר מגדר" />
+                      </SelectTrigger>
+                      <SelectContent position="popper" align="end">
+                        <SelectItem value="none" className="text-right font-semibold">
+                          ללא סינון (כולם)
+                        </SelectItem>
+                        {GENDERS.map((g) => (
+                          <SelectItem key={g.value} value={g.value} className="text-right">
+                            {g.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

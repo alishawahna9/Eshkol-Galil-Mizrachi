@@ -2,19 +2,31 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import AuthoritiesMap from "@/components/authorities/AuthoritiesMap";
+import dynamic from "next/dynamic";
+
+// Dynamically import AuthoritiesMap to avoid SSR issues with Leaflet
+const AuthoritiesMap = dynamic(() => import("@/components/authorities/AuthoritiesMap"), { 
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center h-full">טוען מפה...</div>
+});
 
 type PopRow = { authority: string; year: number; value: number };
 
-export default function MapTab({ tableComponent, onSelectAuthority, selectedAuthority, filters }: { tableComponent?: React.ReactNode; onSelectAuthority?: (name: string | null) => void; selectedAuthority?: string | null; filters?: { domain?: string; search?: string; metric?: string } }) {
+export default function MapTab({ tableComponent, onSelectAuthority, selectedAuthority, filters }: { tableComponent?: React.ReactNode; onSelectAuthority?: (name: string | null) => void; selectedAuthority?: string | null; filters?: { search?: string; metric?: string; year?: string; valueType?: string; ageGroup?: string; gender?: string } }) {
   const sp = useSearchParams();
 
 
   const year = useMemo(() => {
+    // Use filter year if available, otherwise fallback to URL param or 2023
+    const filterYear = filters?.year;
+    if (filterYear) {
+      const y = Number(filterYear);
+      return Number.isFinite(y) ? y : 2023;
+    }
     const raw = sp.get("year") || "2023";
     const y = Number(raw);
     return Number.isFinite(y) ? y : 2023;
-  }, [sp]);
+  }, [sp, filters?.year]);
 
    useEffect(() => {
     // Reset selection when year changes
@@ -27,7 +39,7 @@ export default function MapTab({ tableComponent, onSelectAuthority, selectedAuth
 
   return (
     <div className="w-full h-full" dir="rtl">
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[520px_1fr] h-[470px]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[520px_1fr] h-117.5">
         {/* Table */}
         <div className="rounded-xl bg-background p-3 overflow-auto">
           {/* Show current selection and allow clearing it */}
