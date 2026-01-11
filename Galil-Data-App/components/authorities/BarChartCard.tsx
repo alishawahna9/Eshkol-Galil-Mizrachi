@@ -51,6 +51,7 @@ type Props = {
   xLabel: string;
   cardClassName?: string;
   cardContentClassName?: string;
+  variant?: "card" | "bare";
 };
 
 export default function BarChartCard({
@@ -62,6 +63,7 @@ export default function BarChartCard({
   xLabel,
   cardClassName,
   cardContentClassName,
+  variant = "card",
 }: Props) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
@@ -175,15 +177,21 @@ export default function BarChartCard({
     },
   };
 
-  return (
+  return variant === "card" ? (
     <Card className={cardClassName ?? "m-15 w-250 max-w-full mx-auto"}>
       <CardHeader className="py-3">
         <CardTitle className="text-base dark:text-slate-100">{title}</CardTitle>
       </CardHeader>
-
       <CardContent className={cardContentClassName ?? "h-80 p-3"}>
         <Bar data={data} options={options} />
       </CardContent>
     </Card>
+  ) : (
+    <div className={cardClassName ?? "w-full"}>
+      <div className="py-1 mb-2 text-base font-bold text-foreground">{title}</div>
+      <div className={cardContentClassName ?? "h-80 p-2"}>
+        <Bar data={data} options={options} />
+      </div>
+    </div>
   );
 }

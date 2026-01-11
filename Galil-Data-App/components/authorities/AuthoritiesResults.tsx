@@ -13,7 +13,16 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
 
-export default function AuthoritiesResults({ filters, selectedAuthority }: { filters?: { domain?: string; search?: string; metric?: string; year?: string; valueType?: string }, selectedAuthority?: string | null }) {
+type Filters = {
+  search?: string;
+  metric?: string;
+  year?: string;
+  valueType?: string;
+  ageGroup?: string;
+  gender?: string;
+};
+
+export default function AuthoritiesResults({ filters, selectedAuthority }: { filters?: Filters; selectedAuthority?: string | null }) {
   const [data, setData] = useState<{ name: string; totalPopulation: number; metricValue: number; arabsCount?: number; muslimsCount?: number }[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,10 +39,11 @@ export default function AuthoritiesResults({ filters, selectedAuthority }: { fil
     const params = new URLSearchParams();
     const searchParam = selectedAuthority ?? filters?.search;
     if (searchParam) params.set("search", searchParam);
-    if (filters?.domain) params.set("domain", filters.domain);
     if (filters?.metric) params.set("metric", filters.metric);
     if ((filters as any)?.year) params.set("year", (filters as any).year);
     if ((filters as any)?.valueType) params.set("valueType", (filters as any).valueType);
+    if (filters?.ageGroup) params.set("ageGroup", filters.ageGroup);
+    if (filters?.gender) params.set("gender", filters.gender);
 
     setLoading(true);
     setError(null);
@@ -50,7 +60,7 @@ export default function AuthoritiesResults({ filters, selectedAuthority }: { fil
         setData([]);
       })
       .finally(() => setLoading(false));
-  }, [filters?.search, filters?.domain, filters?.metric, filters?.year, filters?.valueType, selectedAuthority]);
+  }, [filters?.search, filters?.domain, filters?.metric, filters?.year, filters?.valueType, filters?.ageGroup, filters?.gender, selectedAuthority]);
 
   return (
     <div className="rounded-xl border bg-white p-2 shadow-sm h-full min-h-0 overflow-hidden text-foreground flex flex-col">

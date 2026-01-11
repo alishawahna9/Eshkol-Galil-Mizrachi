@@ -1,26 +1,24 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import MapTab from "@/components/authorities/MapTab";
-import AuthoritiesTopFilterBar from "@/components/authorities/AuthoritiesTopFilterBar";
 
 type Props = {
   tableComponent: ReactNode;
   onSelectAuthority?: (name: string | null) => void;
   selectedAuthority?: string | null;
+  filters?: { search?: string; metric?: string; year?: string; valueType?: string; ageGroup?: string; gender?: string };
 };
 
 export default function MapTabPanel({
   tableComponent,
   onSelectAuthority,
   selectedAuthority,
+  filters,
 }: Props) {
-  const [filters, setFilters] = useState<{ domain?: string; search?: string; metric?: string }>({ domain: "", search: "", metric: "" });
-
   return (
     <div>
-      <AuthoritiesTopFilterBar />
-      <div className="h-[520px] w-full mt-4">
+      <div className="h-145 w-full">
         <MapTab
           tableComponent={tableComponent}
           onSelectAuthority={onSelectAuthority}

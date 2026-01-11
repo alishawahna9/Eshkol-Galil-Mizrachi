@@ -46,8 +46,9 @@ export default function ComparisonChart({ filters }: { filters?: { domain?: stri
         const params = new URLSearchParams();
         params.set('year', String(year));
         if (metric) params.set('metric', metric);
-        if (filters?.domain) params.set('domain', filters.domain);
         if (filters?.search) params.set('search', filters.search);
+        if (filters?.ageGroup) params.set('ageGroup', filters.ageGroup);
+        if (filters?.gender) params.set('gender', filters.gender);
         const response = await fetch(`/api/authorities/comparison?${params.toString()}`);
         
         if (!response.ok) {
@@ -71,7 +72,7 @@ export default function ComparisonChart({ filters }: { filters?: { domain?: stri
     };
 
     fetchData();
-  }, [year]);
+  }, [year, metric, filters?.search, filters?.ageGroup, filters?.gender]);
 
   // Transform rows based on valueType (convert to percentages if needed)
   const transformedRows = useMemo(() => {
@@ -120,6 +121,7 @@ export default function ComparisonChart({ filters }: { filters?: { domain?: stri
       rows={sorted}
       valueKind={valueKind}
       tickStep={valueType === "percent" ? 10 : 2000}
+      variant="bare"
     />
   );
 }

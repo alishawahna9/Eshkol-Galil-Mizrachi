@@ -23,12 +23,13 @@ export default function TrendTabPanel({
 
   return (
     <div>
-      <AuthoritiesTopFilterBar />
-      <div className="h-[520px] w-full mt-4">
-        <TrendChartWithData
-          selectedAuthority={selectedAuthority}
-          filters={filters}
-        />
+      <div className="mt-4">
+        <div className="h-145 w-full rounded-2xl bg-white border p-4">
+          <TrendChartWithData
+            selectedAuthority={selectedAuthority}
+            filters={filters}
+          />
+        </div>
       </div>
     </div>
   );
