@@ -69,7 +69,12 @@ export function FilterDropdownMenu({
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end" className="min-w-[150px]">
+        <DropdownMenuContent
+          align="end"
+          className={`min-w-[170px] ${
+            param === "year" ? "max-h-[240px] overflow-y-auto" : ""
+          }`}
+        >
           <DropdownMenuLabel className="text-xs text-muted-foreground">
             {label}
           </DropdownMenuLabel>

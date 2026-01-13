@@ -5,92 +5,150 @@ import { useEffect, useMemo, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Table2 } from "lucide-react";
+import { BarChart3, Table2, FileDown } from "lucide-react";
 
 import FilterDropdown from "@/components/FilterDropdown";
 import GlilElectricityTable from "@/components/dataexplorer/GlilElectricityTable";
 import BarChartCard from "@/components/authorities/BarChartCard";
-
+import InsightsPanel from "@/components/dataexplorer/InsightsPanel";
+import { exportDataExplorerReport } from "@/components/dataexplorer/export-dataexplorer";
 import {
-  getDataExplorerResult,
-  type SplitKey,
-  type ValueKind,
-  type Year,
-  type FakeDataPoint,
+  buildWomenDataExplorerResult,
+  buildMenDataExplorerResult,
+  buildPeopleDataExplorerResult,
+  buildGenderDistributionResult,
+  ValueKind,
+  TopGenderApiResponse,
 } from "@/components/dataexplorer/dataexplorer-service";
-
 // Simple option type for the dropdowns
 type Option = { label: string; value: string };
 
 // Props passed from the page: options for the three filters
 type Props = {
   splitOptions: Option[];
+  statusOptions: Option[];
   contentTypeOptions: Option[];
-  yearsOptions: Option[];
 };
 
 export default function DataExplorerView({
   splitOptions,
+  statusOptions,
   contentTypeOptions,
-  yearsOptions,
 }: Props) {
   // Local UI state for the selected year / split / value type
-  const [year, setYear] = useState<Year>("2023");
-  const [splitBy, setSplitBy] = useState<SplitKey>("דת");
+  // splitBy נשמר רק לטובת ממשק המשתמש, המדד היחיד הוא נשים
+  const [splitBy, setSplitBy] = useState<string>(
+    splitOptions[0]?.value ?? "top_women"
+  );
+  const [municipalStatus, setMunicipalStatus] = useState<string>("all");
   const [valueKind, setValueKind] = useState<ValueKind>("number");
+  const [genderData, setGenderData] = useState<TopGenderApiResponse | null>(
+    null
+  );
+  const [error, setError] = useState<string | null>(null);
 
-  // Women-by-authority data (loaded once from the API when needed)
-  const [womenData, setWomenData] = useState<FakeDataPoint[] | null>(null);
-
-  const isWomenMode = splitBy === "נשים לפי רשות";
-
-  // Reset filters back to the default selection
-  function clearFilters() {
-    setYear("2022");
-    setSplitBy("גיל");
-    setValueKind("percent");
-  }
-
-  // Load women-by-authority dataset once on first entry to that mode
+  // Fetch data from the API; re-run whenever the municipalStatus filter changes.
   useEffect(() => {
-    if (!isWomenMode || womenData) return;
+    let cancelled = false;
 
-    async function loadWomen() {
+    async function load() {
       try {
-        const res = await fetch("/api/dataexplorer/women");
-        if (!res.ok) return;
-        const json = (await res.json()) as FakeDataPoint[];
-        setWomenData(json);
-      } catch (e) {
-        console.error("Failed to load women data", e);
+        const qs =
+          municipalStatus && municipalStatus !== "all"
+            ? `?status=${encodeURIComponent(municipalStatus)}`
+            : "";
+        const res = await fetch(`/api/dataexplorer${qs}`);
+        if (!res.ok) {
+          throw new Error("Failed to load data explorer");
+        }
+        const json = (await res.json()) as TopGenderApiResponse;
+        if (!cancelled) {
+          setGenderData(json);
+          setError(null);
+        }
+      } catch {
+        if (!cancelled) {
+          setError("שגיאה בטעינת הנתונים");
+        }
       }
     }
 
-    loadWomen();
-  }, [isWomenMode, womenData]);
+    load();
 
-  // Recalculate chart/table data whenever filters (or women data) change
+    return () => {
+      cancelled = true;
+    };
+  }, [municipalStatus]);
+
+  // Reset filters back to the default selection
+  function clearFilters() {
+    setSplitBy(splitOptions[0]?.value ?? "top_women");
+    setMunicipalStatus("all");
+    setValueKind("number");
+  }
+
+  // Export current chart/table to Excel file
+  function exportCurrentReport() {
+    if (!result || !genderData) return;
+    exportDataExplorerReport({ result, genderData, splitBy });
+  }
+
+  // Recalculate chart/table data whenever filters change
   const result = useMemo(() => {
-    if (isWomenMode) {
-      const data = womenData ?? [];
-      return getDataExplorerResult(
-        { year: "2023", splitBy, valueKind },
-        data
+    if (!genderData) return null;
+
+    // Resolve the human-readable label for the selected municipal status
+    const currentStatus = statusOptions.find(
+      (opt) => opt.value === municipalStatus
+    );
+    const municipalStatusLabel =
+      currentStatus && currentStatus.value !== "all"
+        ? currentStatus.label
+        : undefined;
+
+    // Special metric: gender distribution (two bars: women vs men)
+    if (splitBy === "gender_distribution") {
+      return buildGenderDistributionResult(
+        genderData.women,
+        genderData.men,
+        valueKind,
+        municipalStatusLabel
       );
     }
 
-    return getDataExplorerResult({ year, splitBy, valueKind });
-  }, [year, splitBy, valueKind, isWomenMode, womenData]);
+    if (splitBy === "top_men") {
+      return buildMenDataExplorerResult(
+        genderData.men,
+        valueKind,
+        municipalStatusLabel
+      );
+    }
+
+    if (splitBy === "top_people") {
+      return buildPeopleDataExplorerResult(
+        genderData.people,
+        valueKind,
+        municipalStatusLabel
+      );
+    }
+
+    // Default metric: women
+    return buildWomenDataExplorerResult(
+      genderData.women,
+      valueKind,
+      municipalStatusLabel
+    );
+  }, [genderData, splitBy, valueKind, municipalStatus, statusOptions]);
 
   return (
     // Tabs between chart view and table view
     <Tabs defaultValue="bar" className="flex flex-col flex-1 w-full">
       {/* Filter card: title, clear button, and three dropdowns */}
-      <Card dir="rtl" className="w-8/9 mt-6 mb-4">
+      <Card dir="rtl" className="w-full mt-6 mb-4 mx-auto">
         <CardHeader className="pb-2 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <CardTitle className="text-base font-bold">תפריט סינון</CardTitle>
-            <aside className="mr-1">
+            <aside className="mr-1 flex gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -99,6 +157,16 @@ export default function DataExplorerView({
                 onClick={clearFilters}
               >
                 נקה סינון
+              </Button>
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                className="cursor-pointer gap-2"
+                onClick={exportCurrentReport}
+              >
+                <FileDown className="w-4 h-4" />
+                ייצא דוח
               </Button>
             </aside>
           </div>
@@ -146,18 +214,29 @@ export default function DataExplorerView({
           >
             {/* Filter: choose how to split the data */}
             <FilterDropdown
-              className="w-full md:w-50"
+              className="w-5/6 md:w-72"
               label="בחירת מדד"
               value={splitBy}
               onChange={(v) => {
-                setSplitBy(v as SplitKey);
+                setSplitBy(v);
               }}
               options={splitOptions}
             />
 
+            {/* Filter: municipal status (city / local council / regional council) */}
+            <FilterDropdown
+              className="w-full md:w-72"
+              label="מעמד מוניציפלי"
+              value={municipalStatus}
+              onChange={(v) => {
+                setMunicipalStatus(v);
+              }}
+              options={statusOptions}
+            />
+
             {/* Filter: choose value kind (number / percent) */}
             <FilterDropdown
-              className="w-full md:w-50"
+              className="w-full md:w-72"
               label="סוג ערך"
               value={valueKind}
               onChange={(v) => {
@@ -165,49 +244,63 @@ export default function DataExplorerView({
               }}
               options={contentTypeOptions}
             />
-
-            {/* Filter: choose data year (hidden in women-by-authority mode) */}
-            {!isWomenMode && (
-              <FilterDropdown
-                className="w-full md:w-50"
-                label="שנת נתונים"
-                value={year}
-                onChange={(v) => {
-                  setYear(v as Year);
-                }}
-                options={yearsOptions}
-              />
-            )}
           </div>
         </CardContent>
       </Card>
 
+      {/* Insights Panel */}
+      {genderData && (
+        <InsightsPanel
+          genderData={genderData}
+          splitBy={splitBy}
+          municipalStatusLabel={
+            statusOptions.find((opt) => opt.value === municipalStatus)?.label
+          }
+        />
+      )}
+
       <div className="flex-1 min-h-0">
         <TabsContent value="bar">
           {/* Bar chart view (main visualization) */}
-          <div className="h-full min-h-150 w-8/9 rounded-xl flex p-4">
+          <div className="h-full min-h-150 w-full rounded-xl flex p-4">
             {/* BarChartCard renders the chart based on the calculated result */}
-            <BarChartCard
-              title={result.title}
-              rows={result.rows}
-              valueKind={valueKind}
-              tickStep={result.tickStep}
-              yLabel={result.yLabel}
-              xLabel={result.xLabel}
-              cardClassName="w-full"
-            />
+            {result ? (
+              <BarChartCard
+                title={result.title}
+                rows={result.rows}
+                valueKind={valueKind}
+                tickStep={result.tickStep}
+                yLabel={result.yLabel}
+                xLabel={result.xLabel}
+                cardClassName="w-full"
+                cardContentClassName="h-[520px] p-3"
+              />
+            ) : (
+              <div className="w-full flex items-center justify-center text-sm text-muted-foreground">
+                {error ?? "טוען נתונים..."}
+              </div>
+            )}
           </div>
         </TabsContent>
 
         <TabsContent value="table" className="h-full m-0">
           {/* Table view */}
           <div className="h-full min-h-150 rounded-xl flex justify-center p-4">
-            <GlilElectricityTable
-              headers={result.tableHeaders}
-              rows={result.tableRows}
-              className="m-10"
-              tableClassName="min-w-[700px] min-h-[300px]"
-            />
+            {result ? (
+              <GlilElectricityTable
+                title={result.title}
+                headers={result.tableHeaders}
+                rows={result.tableRows}
+                className="m-10"
+                tableClassName="min-w-[700px] min-h-[300px]"
+                enableSearch={true}
+                searchPlaceholder="חיפוש ברשויות..."
+              />
+            ) : (
+              <div className="w-full flex items-center justify-center text-sm text-muted-foreground">
+                {error ?? "טוען נתונים..."}
+              </div>
+            )}
           </div>
         </TabsContent>
       </div>

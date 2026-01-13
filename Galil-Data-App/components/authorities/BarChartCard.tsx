@@ -16,12 +16,14 @@ import { Bar } from "react-chartjs-2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTheme } from "next-themes";
 
+// Chart.js requires explicit registration of the scales/elements we use.
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 type ValueKind = "number" | "percent";
 type Row = { label: string; value: number };
 
 function formatNumber(n: number, decimals: number) {
+  // Used for ticks + tooltips; keeps formatting consistent (number vs percent).
   return n.toLocaleString(undefined, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
@@ -29,6 +31,7 @@ function formatNumber(n: number, decimals: number) {
 }
 
 function buildNumberTicks(max: number, step: number) {
+  // Generates stable tick spacing in "number" mode (avoids crowded/uneven axes).
   const safeMax = Math.max(0, max);
   const safeStep = Math.max(1, step);
   const top = Math.ceil(safeMax / safeStep) * safeStep || safeStep;
@@ -47,6 +50,8 @@ type Props = {
   yLabel: string;
   xLabel: string;
   cardClassName?: string;
+  cardContentClassName?: string;
+  variant?: "card" | "bare";
 };
 
 export default function BarChartCard({
@@ -57,6 +62,8 @@ export default function BarChartCard({
   yLabel,
   xLabel,
   cardClassName,
+  cardContentClassName,
+  variant = "card",
 }: Props) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
@@ -69,8 +76,10 @@ export default function BarChartCard({
 
   const dataMax = Math.max(0, ...values);
 
+  // Percent mode always uses a 0..100 axis. Number mode uses a padded max.
   let safeMax = valueKind === "percent" ? 100 : Math.max(1, dataMax * 1.15);
 
+  // Percent mode uses fixed ticks; number mode uses computed ticks.
   let ticks: number[] =
     valueKind === "percent" ? [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100] : [];
 
@@ -95,9 +104,8 @@ export default function BarChartCard({
       },
     ],
   };
-
-  // ✅ צבעים עבור dark/light
   const chartColors = useMemo(() => {
+    // Theme-aware colors; memoized so Chart.js options stay referentially stable.
     return {
       tick: isDark ? "rgba(226,232,240,0.92)" : "rgba(15,23,42,0.88)", // slate-200 / slate-900
       title: isDark ? "rgba(226,232,240,0.92)" : "rgba(15,23,42,0.88)",
@@ -149,6 +157,7 @@ export default function BarChartCard({
         min: 0,
         max: safeMax,
         afterBuildTicks: (axis) => {
+          // Force Chart.js to use our tick list (keeps 0..100 for percent, stable steps for numbers).
           axis.ticks = ticks.map((v) => ({ value: v })) as unknown as Tick[];
         },
         ticks: {
@@ -168,15 +177,21 @@ export default function BarChartCard({
     },
   };
 
-  return (
+  return variant === "card" ? (
     <Card className={cardClassName ?? "m-15 w-250 max-w-full mx-auto"}>
       <CardHeader className="py-3">
         <CardTitle className="text-base dark:text-slate-100">{title}</CardTitle>
       </CardHeader>
-
-      <CardContent className="h-80 p-3">
+      <CardContent className={cardContentClassName ?? "h-80 p-3"}>
         <Bar data={data} options={options} />
       </CardContent>
     </Card>
+  ) : (
+    <div className={cardClassName ?? "w-full"}>
+      <div className="py-1 mb-2 text-base font-bold text-foreground">{title}</div>
+      <div className={cardContentClassName ?? "h-80 p-2"}>
+        <Bar data={data} options={options} />
+      </div>
+    </div>
   );
 }

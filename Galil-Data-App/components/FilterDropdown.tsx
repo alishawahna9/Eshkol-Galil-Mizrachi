@@ -69,7 +69,9 @@ export default function FilterDropdown({
           dark:focus:ring-sky-500/30
         "
       >
-        <span className="truncate">{selected ? selected.label : "בחר"}</span>
+        <span className="truncate flex-1 text-right">
+          {selected ? selected.label : "בחר"}
+        </span>
         <ChevronDown
           className={`w-4 h-4 transition ${
             open ? "rotate-180" : ""
@@ -115,7 +117,7 @@ export default function FilterDropdown({
                   ${active ? "dark:bg-slate-800" : ""}
                 `}
               >
-                <span>{op.label}</span>
+                <span className="flex-1 text-right">{op.label}</span>
                 {active && (
                   <Check className="w-4 h-4 text-sky-600 dark:text-sky-300" />
                 )}
