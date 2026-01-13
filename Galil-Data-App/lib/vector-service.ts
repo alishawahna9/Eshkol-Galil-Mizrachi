@@ -51,6 +51,12 @@ export async function createAndSaveEmbedding(
       Seniors 65+: ${item.age_65_plus}%, 
       Seniors 75+: ${item.age_75_plus}%.
     `.trim();
+  } else if (tableName === "population_data") {
+    description = `
+      Population Data for: ${item.authority}. 
+      Year: ${item.year}. 
+      Population: ${item.population}.
+    `.trim();
   } else {
     // Fallback for future tables
     console.warn(`⚠️ Table ${tableName} is not yet configured for custom descriptions.`);
@@ -63,10 +69,11 @@ export async function createAndSaveEmbedding(
   const vectorString = `[${vector.join(",")}]`;
 
   // Save to DB
+  const idField = tableName === "population_data" ? "id" : "symbol";
   await prisma.$executeRawUnsafe(
-    `UPDATE "${tableName}" SET embedding = $1::vector WHERE symbol = $2`,
+    `UPDATE "${tableName}" SET embedding = $1::vector WHERE ${idField} = $2`,
     vectorString,
-    item.symbol
+    tableName === "population_data" ? item.id : item.symbol
   );
 
   return vector;
