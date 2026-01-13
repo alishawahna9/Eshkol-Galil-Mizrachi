@@ -28,7 +28,6 @@ model AuthorityGeneralInfo {
   area                  Float
   embedding             Unsupported("vector(768)")?
 
-  // --- קשרים שנוספו (Relations) ---
   demographics   AuthorityDemographics[]
   populationData PopulationData[]
 }
@@ -80,6 +79,7 @@ model PopulationData {
   authority  String
   year       Int
   population Int
+  embedding  Unsupported("vector(768)")?
 
   // --- חיבור לפי שם העיר ---
   generalInfo AuthorityGeneralInfo @relation(fields: [authority], references: [name])

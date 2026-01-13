@@ -8,12 +8,7 @@ async function main() {
   console.log("🔍 Checking for missing vectors in Neon...");
 
   // Use raw SQL to bypass Prisma's "Unsupported" column limitations
-  const tables = [
-    "AuthorityGeneralInfo",
-    "AuthorityDemographics",
-    "population_data",
-    "authority_population",
-  ];
+  const tables = ["AuthorityGeneralInfo", "AuthorityDemographics", "population_data"];
 
   for (const tableName of tables) {
     console.log(`Checking table: ${tableName}`);
