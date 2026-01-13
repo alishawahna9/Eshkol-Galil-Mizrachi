@@ -1,31 +1,24 @@
-// lib/dataexplorer-service.ts
-
-// Supported years for the data explorer.
-export const YEARS = ["2021", "2022", "2023"] as const;
-export type Year = (typeof YEARS)[number];
-
-// Dimensions by which we can split the data (religion, age, etc.).
-export const SPLITS = ["דת", "גיל", "מגדר", "מחוז", "חוזרים בתשובה"] as const;
-export type SplitKey = (typeof SPLITS)[number];
-
-// Ways to present the metric values: absolute number or percent of total.
+// Value presentation modes used across all metrics (women / men / people):
+// either an absolute count or a percentage out of the total for that metric.
 export const VALUE_KINDS = ["number", "percent"] as const;
 export type ValueKind = (typeof VALUE_KINDS)[number];
 
-// Current selection of filters that drive the explorer UI and calculations.
-export type DataExplorerFilters = {
-  year: Year;
-  splitBy: SplitKey;
-  valueKind: ValueKind;
-  metricLabel?: string;
+// Single authority row: authority name and number of women.
+export type TopWomenAuthorityRow = {
+  name: string;
+  women: number;
 };
 
-// Shape of a single raw data record (before conversion to chart rows).
-export type FakeDataPoint = {
-  year: Year;
-  splitBy: SplitKey;
-  category: string;
-  number: number;
+// Single authority row: authority name and number of men.
+export type TopMenAuthorityRow = {
+  name: string;
+  men: number;
+};
+
+// Single authority row: authority name and total people (men + women).
+export type TopPeopleAuthorityRow = {
+  name: string;
+  people: number;
 };
 
 // Minimal shape consumed by the chart component.
@@ -45,170 +38,440 @@ export type DataExplorerResult = {
   tickStep: number;
 };
 
+export type TopWomenResponse = {
+  rows: TopWomenAuthorityRow[];
+  totalWomen: number;
+};
+
+export type TopMenResponse = {
+  rows: TopMenAuthorityRow[];
+  totalMen: number;
+};
+
+export type TopPeopleResponse = {
+  rows: TopPeopleAuthorityRow[];
+  totalPeople: number;
+};
+
+// Default labels for the "metric selection" filter.
+export const TOP_WOMEN_METRIC_LABEL = "לפי נשים – 10 הרשויות המובילות";
+export const TOP_MEN_METRIC_LABEL = "לפי גברים – 10 הרשויות המובילות";
+export const TOP_PEOPLE_METRIC_LABEL = "לפי תושבים – 10 הרשויות המובילות";
+export const TOP_GENDER_DISTRIBUTION_LABEL = "התפלגות לפי מגדר";
+
+// Fixed set of municipal status values used for filtering.
+// These must match the values stored in AuthorityGeneralInfo.municipalStatus.
+export const MUNICIPAL_STATUS_OPTIONS = [
+  { label: "כל המעמדות", value: "all" },
+  { label: "עירייה", value: "עירייה" },
+  { label: "מועצה מקומית", value: "מועצה מקומית" },
+  { label: "מועצה אזורית", value: "מועצה אזורית" },
+] as const;
+
 /**
- * Build dropdown options for the data explorer filters (split, value kind, year).
+ * Builds the dropdown options for the Data Explorer filters.
+ * - splitOptions: which metric to show (top women / top men / top people).
+ * - contentTypeOptions: how to display values (absolute number / percent).
+ * There is intentionally no year filter – all metrics are aggregated over all years.
  */
 export function getDataExplorerOptions() {
   return {
-    splitOptions: SPLITS.map((s) => ({ label: s, value: s })),
+    splitOptions: [
+      { label: TOP_WOMEN_METRIC_LABEL, value: "top_women" },
+      { label: TOP_MEN_METRIC_LABEL, value: "top_men" },
+      { label: TOP_PEOPLE_METRIC_LABEL, value: "top_people" },
+      { label: TOP_GENDER_DISTRIBUTION_LABEL, value: "gender_distribution" },
+    ],
+    statusOptions: MUNICIPAL_STATUS_OPTIONS,
     contentTypeOptions: [
       { label: "מספרי", value: "number" },
       { label: "אחוזים", value: "percent" },
     ],
-    // Options for the year filter.
-    yearsOptions: YEARS.map((y) => ({ label: y, value: y })),
   };
 }
 
-// Mock data used by the explorer (can later be replaced by real DB/API data).
-export const DATAEXPLORER_FAKE_DATA: FakeDataPoint[] = [
-  // ===== 2021 =====
-  { year: "2021", splitBy: "דת", category: "יהודי", number: 1800 },
-  { year: "2021", splitBy: "דת", category: "מוסלמי", number: 1600 },
-  { year: "2021", splitBy: "דת", category: "נוצרי", number: 400 },
-  { year: "2021", splitBy: "דת", category: "דרוזי", number: 700 },
-
-
-{ year: "2021", splitBy: "גיל", category: "25 - 29", number: 2850 },
-{ year: "2021", splitBy: "גיל", category: "30 - 34", number: 3120 },
-{ year: "2021", splitBy: "גיל", category: "34 - 39", number: 2980 },
-{ year: "2021", splitBy: "גיל", category: "50 - 54", number: 2410 },
-{ year: "2021", splitBy: "גיל", category: "60 - 64", number: 1760 },
-{ year: "2021", splitBy: "גיל", category: "65 - 74", number: 1320 },
-{ year: "2021", splitBy: "גיל", category: "75+", number: 980 },
-
-  { year: "2021", splitBy: "מגדר", category: "זכר", number: 1200 },
-  { year: "2021", splitBy: "מגדר", category: "נקבה", number: 2600 },
-
-  { year: "2021", splitBy: "מחוז", category: "צפון", number: 1950 },
-
-  { year: "2021", splitBy: "חוזרים בתשובה", category: "לא", number: 2100 },
-  { year: "2021", splitBy: "חוזרים בתשובה", category: "כן", number: 2400 },
-
-  // ===== 2022 =====
-  { year: "2022", splitBy: "דת", category: "יהודי", number: 2000 },
-  { year: "2022", splitBy: "דת", category: "מוסלמי", number: 1700 },
-  { year: "2022", splitBy: "דת", category: "נוצרי", number: 450 },
-  { year: "2022", splitBy: "דת", category: "דרוזי", number: 2200 },
-
-  { year: "2022", splitBy: "גיל", category: "25 - 29", number: 2920 },
-  { year: "2022", splitBy: "גיל", category: "30 - 34", number: 3250 },
-  { year: "2022", splitBy: "גיל", category: "34 - 39", number: 3050 },
-  { year: "2022", splitBy: "גיל", category: "50 - 54", number: 2550 },
-  { year: "2022", splitBy: "גיל", category: "60 - 64", number: 1890 },
-  { year: "2022", splitBy: "גיל", category: "65 - 74", number: 1410 },
-  { year: "2022", splitBy: "גיל", category: "75+", number: 1060 },
-
-  { year: "2022", splitBy: "מגדר", category: "זכר", number: 1300 },
-  { year: "2022", splitBy: "מגדר", category: "נקבה", number: 2800 },
-
-  { year: "2022", splitBy: "מחוז", category: "צפון", number: 2100 },
-
-  { year: "2022", splitBy: "חוזרים בתשובה", category: "לא", number: 2300 },
-  { year: "2022", splitBy: "חוזרים בתשובה", category: "כן", number: 2500 },
-
-  // ===== 2023 =====
-  { year: "2023", splitBy: "דת", category: "יהודי", number: 2100 },
-  { year: "2023", splitBy: "דת", category: "מוסלמי", number: 1750 },
-  { year: "2023", splitBy: "דת", category: "נוצרי", number: 480 },
-  { year: "2023", splitBy: "דת", category: "דרוזי", number: 2350 },
-
-  { year: "2023", splitBy: "גיל", category: "25 - 29", number: 3010 },
-  { year: "2023", splitBy: "גיל", category: "30 - 34", number: 3390 },
-  { year: "2023", splitBy: "גיל", category: "34 - 39", number: 3170 },
-  { year: "2023", splitBy: "גיל", category: "50 - 54", number: 2680 },
-  { year: "2023", splitBy: "גיל", category: "60 - 64", number: 2010 },
-  { year: "2023", splitBy: "גיל", category: "65 - 74", number: 1520 },
-  { year: "2023", splitBy: "גיל", category: "75+", number: 1180 },
-
-  { year: "2023", splitBy: "מגדר", category: "זכר", number: 1400 },
-  { year: "2023", splitBy: "מגדר", category: "נקבה", number: 2900 },
-
-  { year: "2023", splitBy: "מחוז", category: "צפון", number: 2250 },
-
-  { year: "2023", splitBy: "חוזרים בתשובה", category: "לא", number: 2400 },
-  { year: "2023", splitBy: "חוזרים בתשובה", category: "כן", number: 2600 },
-];
-
+// Rounds a number to the nearest integer when it is already very close,
+// otherwise keeps a single digit after the decimal point.
 function roundSmart(n: number) {
-  // Round to an integer when the number is very close to it,
-  // otherwise keep a single digit after the decimal point.
   const nearInt = Math.abs(n - Math.round(n)) < 1e-9;
   if (nearInt) return Math.round(n);
   return Math.round(n * 10) / 10;
 }
 
-// Build the chart rows (label + numeric value) from raw data points
-// according to the selected value kind (number / percent of total).
-function buildChartRows(
-  filtered: FakeDataPoint[],
-  sum: number,
-  valueKind: ValueKind
+// Generic helper to build chart rows (label + numeric value) from any metric
+// according to the selected value kind (absolute number / percent of total).
+function buildGenderChartRows<T extends { name: string }>(
+  rows: T[],
+  totalCount: number,
+  valueKind: ValueKind,
+  getCount: (row: T) => number
 ): ChartRow[] {
-  return filtered.map((d) => {
-    const pct = sum > 0 ? (d.number / sum) * 100 : 0;
-    const value = valueKind === "percent" ? roundSmart(pct) : d.number;
-    return { label: d.category, value };
+  return rows.map((row) => {
+    const count = getCount(row);
+    const pct = totalCount > 0 ? (count / totalCount) * 100 : 0;
+    const value = valueKind === "percent" ? roundSmart(pct) : count;
+    return { label: row.name, value };
   });
 }
 
-// Build the table rows (category + displayed value as string/number)
-// according to the selected value kind (number / percent of total).
-function buildTableRows(
-  filtered: FakeDataPoint[],
-  sum: number,
-  valueKind: ValueKind
+// Generic helper to build table rows (authority + displayed value as string/number)
+// according to the selected value kind (absolute number / percent of total).
+function buildGenderTableRows<T extends { name: string }>(
+  rows: T[],
+  totalCount: number,
+  valueKind: ValueKind,
+  getCount: (row: T) => number
 ): Array<Array<string | number>> {
-  return filtered.map((d) => {
-    const pct = sum > 0 ? (d.number / sum) * 100 : 0;
-    const shown =
-      valueKind === "percent" ? `${roundSmart(pct)}%` : d.number;
-    return [d.category, shown];
+  return rows.map((row) => {
+    const count = getCount(row);
+    const pct = totalCount > 0 ? (count / totalCount) * 100 : 0;
+    const shown = valueKind === "percent" ? `${roundSmart(pct)}%` : count;
+    return [row.name, shown];
   });
 }
 
 /**
- * Build the chart/page title according to the current filters.
- * If no custom metric label is provided, we fall back to a default text.
+ * Generic helper to build the chart / page title for all metrics
+ * (women / men / people).
+ *
+ * The concrete metric helpers (women / men / people) only provide
+ * the specific text fragments; this function is responsible for:
+ * - choosing the correct suffix for number vs percent view,
+ * - injecting the optional municipal status text when it is not "all",
+ * - keeping the overall sentence structure consistent.
  */
-export function buildExplorerTitle(filters: DataExplorerFilters) {
-  const metric = filters.metricLabel ?? "מוגבלות תפקודית חמורה";
+function buildExplorerTitle(
+  valueKind: ValueKind,
+  municipalStatusLabel: string | undefined,
+  {
+    subjectText,
+    numberText,
+    percentText,
+    isGenderDistribution = false,
+  }: {
+    metricLabel: string;    // Short label that appears in the metric filter (e.g. "לפי נשים").
+    subjectText: string;    // Part describing what we rank by (e.g. "מספר הנשים הגבוה ביותר").
+    numberText: string;// Text used when showing absolute numbers.
+    percentText: string;  // Text used when showing percentages.
+    isGenderDistribution?: boolean; // Flag to indicate if this is gender distribution view
+  }
+): string {
+  const valueText =
+    valueKind === "percent" ? `(${percentText})` : `(${numberText})`;
 
-  // Decide whether to show the units as percent or absolute number of people.
-  const valueText = filters.valueKind === "percent" ? "(אחוזים)" : "(סה״כ אנשים)";
+  const statusSuffix =
+    municipalStatusLabel && municipalStatusLabel !== "כל המעמדות"
+      ? ` - מעמד מוניציפלי: ${municipalStatusLabel}`
+      : "";
 
-  // Build a human‑readable Hebrew title using all filters.
-  return `אנשים בעלי ${metric} ${valueText} בשנת ${filters.year} באשכול גליל מזרחי, בפילוח לפי ${filters.splitBy}`;
+  // For gender distribution, don't use "10 הרשויות עם" prefix
+  if (isGenderDistribution) {
+    return `${subjectText} ${valueText}${statusSuffix}`;
+  }
+
+  return `10 הרשויות עם ${subjectText} ${valueText}${statusSuffix}`;
 }
 
 /**
- * Aggregate raw data points into a structure that the explorer UI can render.
- *
- * - Filters the raw data by year and split.
- * - Computes percentages when needed.
- * - Returns both chart rows and table rows, plus labels and title.
+ * Takes raw DB rows (authority name + women) and produces
+ * a normalized TopWomenResponse including total sum and top N rows.
  */
-export function getDataExplorerResult(
-  filters: DataExplorerFilters,
-  data: FakeDataPoint[] = DATAEXPLORER_FAKE_DATA
-): DataExplorerResult {
-  const filtered = data
-    .filter((d) => d.year === filters.year && d.splitBy === filters.splitBy)
-    .slice()
-    .sort((a, b) => b.number - a.number);
+export function createTopWomenResponse(
+  allRows: { name: string; women: number | null }[],
+  limit: number = 10
+): TopWomenResponse {
+  const normalized: TopWomenAuthorityRow[] = allRows.map((r) => ({
+    name: r.name,
+    women: r.women ?? 0,
+  }));
 
-  const sum = filtered.reduce((acc, d) => acc + d.number, 0);
-  const tableHeaders = [filters.splitBy, "אשכול גליל מזרחי"];
-  const rows = buildChartRows(filtered, sum, filters.valueKind);
-  const tableRows = buildTableRows(filtered, sum, filters.valueKind);
+  const totalWomen = normalized.reduce((sum, r) => sum + r.women, 0);
+
+  const rows = normalized
+    .slice()
+    .sort((a, b) => b.women - a.women)
+    .slice(0, limit);
+
+  return { rows, totalWomen };
+}
+
+/**
+ * Takes raw DB rows (authority name + men) and produces
+ * a normalized TopMenResponse including total sum and top N rows.
+ */
+export function createTopMenResponse(
+  allRows: { name: string; men: number | null }[],
+  limit: number = 10
+): TopMenResponse {
+  const normalized: TopMenAuthorityRow[] = allRows.map((r) => ({
+    name: r.name,
+    men: r.men ?? 0,
+  }));
+
+  const totalMen = normalized.reduce((sum, r) => sum + r.men, 0);
+
+  const rows = normalized
+    .slice()
+    .sort((a, b) => b.men - a.men)
+    .slice(0, limit);
+
+  return { rows, totalMen };
+}
+
+/**
+ * Takes raw DB rows (authority name + total people) and produces
+ * a normalized TopPeopleResponse including total sum and top N rows.
+ */
+export function createTopPeopleResponse(
+  allRows: { name: string; people: number | null }[],
+  limit: number = 10
+): TopPeopleResponse {
+  const normalized: TopPeopleAuthorityRow[] = allRows.map((r) => ({
+    name: r.name,
+    people: r.people ?? 0,
+  }));
+
+  const totalPeople = normalized.reduce((sum, r) => sum + r.people, 0);
+
+  const rows = normalized
+    .slice()
+    .sort((a, b) => b.people - a.people)
+    .slice(0, limit);
+
+  return { rows, totalPeople };
+}
+
+/**
+ * Aggregates women data fetched from the DB into a structure the UI can render.
+ *
+ * - No split by year or other metrics – only women.
+ * - valueKind controls whether to show percentages of total women or absolute numbers.
+ */
+export function buildWomenDataExplorerResult(
+  response: TopWomenResponse,
+  valueKind: ValueKind,
+  municipalStatusLabel?: string
+): DataExplorerResult {
+  const { rows, totalWomen } = response;
+
+  // Build the human‑readable title for the page / chart / table.
+  const title = buildExplorerTitle(valueKind, municipalStatusLabel, {
+    metricLabel: TOP_WOMEN_METRIC_LABEL,
+    subjectText: "מספר הנשים הגבוה ביותר",
+    numberText: "מספר נשים",
+    percentText: "אחוזים מתוך כלל הנשים",
+  });
+
+  return buildMetricDataExplorerResult<TopWomenAuthorityRow>({
+    rows,
+    total: totalWomen,
+    valueKind,
+    title,
+    tableHeaderLabel: "נשים באשכול גליל מזרחי",
+    yLabelNumber: "מספר נשים",
+    yLabelPercent: "אחוז נשים",
+    getCount: (row) => row.women,
+  });
+}
+
+/**
+ * Aggregates men data fetched from the DB into a structure the UI can render.
+ * Mirrors the women implementation but uses the "men" field and labels.
+ */
+export function buildMenDataExplorerResult(
+  response: TopMenResponse,
+  valueKind: ValueKind,
+  municipalStatusLabel?: string
+): DataExplorerResult {
+  const { rows, totalMen } = response;
+
+  // Build the human‑readable title for the page / chart / table.
+  const title = buildExplorerTitle(valueKind, municipalStatusLabel, {
+    metricLabel: TOP_MEN_METRIC_LABEL,
+    subjectText: "מספר הגברים הגבוה ביותר",
+    numberText: "מספר גברים",
+    percentText: "אחוזים מתוך כלל הגברים",
+  });
+
+  return buildMetricDataExplorerResult<TopMenAuthorityRow>({
+    rows,
+    total: totalMen,
+    valueKind,
+    title,
+    tableHeaderLabel: "גברים באשכול גליל מזרחי",
+    yLabelNumber: "מספר גברים",
+    yLabelPercent: "אחוז גברים",
+    getCount: (row) => row.men,
+  });
+}
+
+/**
+ * Aggregates people data (men + women) fetched from the DB
+ * into a structure the UI can render.
+ */
+export function buildPeopleDataExplorerResult(
+  response: TopPeopleResponse,
+  valueKind: ValueKind,
+  municipalStatusLabel?: string
+): DataExplorerResult {
+  const { rows, totalPeople } = response;
+
+  // Build the human‑readable title for the page / chart / table.
+  const title = buildExplorerTitle(valueKind, municipalStatusLabel, {
+    metricLabel: TOP_PEOPLE_METRIC_LABEL,
+    subjectText: "מספר התושבים הגבוה ביותר",
+    numberText: "מספר אנשים",
+    percentText: "אחוזים מתוך כלל האוכלוסייה",
+  });
+
+  return buildMetricDataExplorerResult<TopPeopleAuthorityRow>({
+    rows,
+    total: totalPeople,
+    valueKind,
+    title,
+    tableHeaderLabel: "אנשים באשכול גליל מזרחי",
+    yLabelNumber: "מספר תושבים",
+    yLabelPercent: "אחוז תושבים",
+    getCount: (row) => row.people,
+  });
+}
+
+/**
+ * Builds a gender distribution view (two bars: women vs men) based on the
+ * pre-aggregated totals from TopWomenResponse and TopMenResponse.
+ *
+ * - When valueKind = "number" it shows absolute counts of women / men.
+ * - When valueKind = "percent" it shows each gender as % of (women + men).
+ * - Still respects the municipal status filter via the pre-filtered responses.
+ */
+export function buildGenderDistributionResult(
+  womenResponse: TopWomenResponse,
+  menResponse: TopMenResponse,
+  valueKind: ValueKind,
+  municipalStatusLabel?: string
+): DataExplorerResult {
+  const totalWomen = womenResponse.totalWomen;
+  const totalMen = menResponse.totalMen;
+  const grandTotal = totalWomen + totalMen;
+
+  const title = buildExplorerTitle(valueKind, municipalStatusLabel, {
+    metricLabel: TOP_GENDER_DISTRIBUTION_LABEL,
+    subjectText: "השוואת אוכלוסייה לפי מגדר באשכול גליל מזרחי",
+    numberText: "מספר תושבים",
+    percentText: "אחוזים מתוך כלל האוכלוסייה",
+    isGenderDistribution: true,
+  });
+
+  const toValue = (count: number) => {
+    if (valueKind === "percent") {
+      const pct = grandTotal > 0 ? (count / grandTotal) * 100 : 0;
+      return roundSmart(pct);
+    }
+    return count;
+  };
+
+  const womenValue = toValue(totalWomen);
+  const menValue = toValue(totalMen);
+
+  const rows: ChartRow[] = [
+    { label: "נשים", value: womenValue },
+    { label: "גברים", value: menValue },
+  ];
+
+  const tableHeaders = [
+    "מגדר",
+    valueKind === "percent"
+      ? "אחוז תושבים באשכול גליל מזרחי"
+      : "מספר תושבים באשכול גליל מזרחי",
+  ];
+
+  const tableRows: Array<Array<string | number>> = [
+    [
+      "נשים",
+      valueKind === "percent" ? `${womenValue}%` : totalWomen,
+    ],
+    [
+      "גברים",
+      valueKind === "percent" ? `${menValue}%` : totalMen,
+    ],
+  ];
+
+  const maxValue = rows.reduce(
+    (max, row) => (row.value > max ? row.value : max),
+    0
+  );
+
+  const tickStep =
+    valueKind === "percent" ? 5 : Math.max(1, Math.round(maxValue / 10));
 
   return {
-    title: buildExplorerTitle(filters),
+    title,
     rows,
     tableHeaders,
     tableRows,
-    xLabel: filters.splitBy,
-    yLabel: filters.valueKind === "percent" ? "אחוזים" : "כמות",
-    tickStep: filters.valueKind === "percent" ? 5 : 25,
+    xLabel: "מגדר",
+    yLabel: valueKind === "percent" ? "אחוז תושבים" : "מספר תושבים",
+    tickStep,
   };
 }
+
+// Generic helper to build a full DataExplorerResult for any metric
+// (women, men, or people) using shared logic for sorting, chart data and table data.
+function buildMetricDataExplorerResult<T extends { name: string }>(params: {
+  rows: T[];
+  total: number;
+  valueKind: ValueKind;
+  title: string;
+  tableHeaderLabel: string;
+  yLabelNumber: string;
+  yLabelPercent: string;
+  getCount: (row: T) => number;
+}): DataExplorerResult {
+  const {
+    rows,
+    total,
+    valueKind,
+    title,
+    tableHeaderLabel,
+    yLabelNumber,
+    yLabelPercent,
+    getCount,
+  } = params;
+
+  // Sort by metric value, highest first, while keeping the original
+  // array untouched (slice() + sort()).
+  const sorted = rows
+    .slice()
+    .sort((a, b) => getCount(b) - getCount(a));
+
+  const tableHeaders = ["רשות", tableHeaderLabel];
+  const chartRows = buildGenderChartRows(sorted, total, valueKind, getCount);
+  const tableRows = buildGenderTableRows(sorted, total, valueKind, getCount);
+
+  const maxValue = chartRows.reduce(
+    (max, row) => (row.value > max ? row.value : max),
+    0
+  );
+
+  const tickStep =
+    valueKind === "percent" ? 5 : Math.max(1, Math.round(maxValue / 10));
+
+  return {
+    title,
+    rows: chartRows,
+    tableHeaders,
+    tableRows,
+    xLabel: "רשות מקומית",
+    yLabel: valueKind === "percent" ? yLabelPercent : yLabelNumber,
+    tickStep,
+  };
+}
+
+// Combined API payload returned by /api/dataexplorer.
+// Exposes pre-aggregated "top 10" views for women, men and people
+// so the client can switch metrics without additional round-trips.
+export type TopGenderApiResponse = {
+  women: TopWomenResponse;
+  men: TopMenResponse;
+  people: TopPeopleResponse;
+};

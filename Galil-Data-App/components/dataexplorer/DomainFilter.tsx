@@ -1,6 +1,6 @@
 "use client";
 
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import {Button} from "@/components/ui/button";
 import {Plus} from "lucide-react";
 
@@ -25,8 +25,13 @@ const domains: {id: DomainKey; label: string}[] = [
   {id: "infrastructure", label: "תשתיות"},
 ];
 
-export default function DomainFilter() {
-  const [activeDomain, setActiveDomain] = useState<DomainKey>("localAuthorities");
+export default function DomainFilter({ active, onChange }: { active?: DomainKey; onChange?: (id: DomainKey) => void }) {
+  const [activeDomain, setActiveDomain] = useState<DomainKey>(active ?? "localAuthorities");
+
+  // sync when parent controls the active domain
+  useEffect(() => {
+    if (active !== undefined) setActiveDomain(active);
+  }, [active]);
 
   return (
     <div className="space-y-4 text-right">
@@ -40,7 +45,9 @@ export default function DomainFilter() {
             type="button"
             variant={activeDomain === domain.id ? "default" : "outline"}
             onClick={() => {
+              console.log('DomainFilter: clicked', domain.id);
               setActiveDomain(domain.id);
+              onChange?.(domain.id);
             }}>
             {domain.label}
           </Button>

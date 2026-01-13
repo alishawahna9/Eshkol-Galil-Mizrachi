@@ -7,7 +7,7 @@ export default function FilterBarBox({
     <div
       dir="rtl"
       className="
-        inline-block
+        w-full
         bg-card
         rounded-2xl
         border border-border
@@ -15,7 +15,7 @@ export default function FilterBarBox({
         px-4 py-3
       "
     >
-      <div className="flex items-end gap-4">
+      <div className="flex items-end gap-4 flex-wrap">
         {children}
       </div>
     </div>

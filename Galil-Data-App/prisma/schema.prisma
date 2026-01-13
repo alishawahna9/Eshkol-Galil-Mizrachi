@@ -27,6 +27,10 @@ model AuthorityGeneralInfo {
   planningCommitteeName String
   area                  Float
   embedding             Unsupported("vector(768)")?
+
+  // --- קשרים שנוספו (Relations) ---
+  demographics   AuthorityDemographics[]
+  populationData PopulationData[]
 }
 
 model AuthorityDemographics {
@@ -56,6 +60,9 @@ model AuthorityDemographics {
   christiansPercent    Float?
   druzePercent         Float?
   embedding            Unsupported("vector(768)")?
+
+  // --- חיבור לפי שם העיר ---
+  generalInfo AuthorityGeneralInfo @relation(fields: [name], references: [name])
 }
 
 model AuthorityPopulation {
@@ -69,10 +76,13 @@ model AuthorityPopulation {
 }
 
 model PopulationData {
-  id          Int    @id @default(autoincrement())
-  authority   String
-  year        Int
-  population  Int
+  id         Int    @id @default(autoincrement())
+  authority  String
+  year       Int
+  population Int
+
+  // --- חיבור לפי שם העיר ---
+  generalInfo AuthorityGeneralInfo @relation(fields: [authority], references: [name])
 
   @@unique([authority, year])
   @@map("population_data")

@@ -1,5 +1,5 @@
 import "dotenv/config";
-import {PrismaClient} from "@/lib/generated/prisma/client";
+import {PrismaClient} from "../lib/generated/prisma/client";
 import {PrismaPg} from "@prisma/adapter-pg";
 import {Pool} from "pg";
 import fs from "fs";
@@ -30,11 +30,16 @@ async function main() {
   //return console.log("seeding implemented no need to run again");
   // --- 1. SEED: AuthorityGeneralInfo ---
   const generalCsvPath = path.resolve(__dirname, "./authorities_general.csv");
+
+  // canonical map symbol -> name used by demographics to avoid FK mismatches
+  const symbolToName = new Map<number, string>();
+
   if (fs.existsSync(generalCsvPath)) {
     const content = fs.readFileSync(generalCsvPath, "utf-8");
     const rows = parse(content, {columns: false, skip_empty_lines: true, bom: true}).slice(1);
 
     console.log(`🚀 Seeding General Info: ${rows.length} records`);
+
     for (const row of rows) {
       const data = {
         name: row[0],
@@ -54,6 +59,9 @@ async function main() {
         update: data,
         create: data,
       });
+
+      // store canonical name by symbol
+      symbolToName.set(data.symbol, data.name);
     }
   }
 
@@ -65,9 +73,12 @@ async function main() {
 
     console.log(`🚀 Seeding Demographics: ${rows.length} records`);
     for (const row of rows) {
+      const symbol = Math.floor(parseStrictNumber(row[1]));
+      const canonicalName = symbolToName.get(symbol) || String(row[0]);
+
       const data = {
-        name: row[0],
-        symbol: Math.floor(parseStrictNumber(row[1])),
+        name: canonicalName,
+        symbol,
         age_0_4: parseStrictNumber(row[2]),
         age_5_9: parseStrictNumber(row[3]),
         age_10_14: parseStrictNumber(row[4]),
@@ -108,17 +119,28 @@ async function main() {
     const dataRows = rows.slice(1);
 
     console.log(`🚀 Seeding PopulationData: ${dataRows.length} authorities × years`);
+    const canonicalNames = new Set(Array.from(symbolToName.values()).map((s) => String(s).trim()));
+    const missingAuthorities = new Set<string>();
+
     const records: Array<{ authority: string; year: number; population: number }> = [];
 
     for (const row of dataRows) {
       const authority = String(row[0] || "").trim();
       if (!authority || authority === "סך הכל") continue; // לדלג על שורת סיכום
+      if (!canonicalNames.has(authority)) {
+        missingAuthorities.add(authority);
+        continue; // skip authorities that don't match general info names
+      }
       for (let i = 1; i < header.length && i < row.length; i++) {
         const year = parseInt(String(header[i]), 10);
         if (isNaN(year)) continue;
         const population = Math.floor(parseStrictNumber(row[i]));
         records.push({ authority, year, population });
       }
+    }
+
+    if (missingAuthorities.size > 0) {
+      console.warn(`⚠️ Skipping ${missingAuthorities.size} authorities from population CSV that have no matching general info. Examples:`, Array.from(missingAuthorities).slice(0,10));
     }
 
     // to avoid huge single requests, insert in chunks

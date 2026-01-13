@@ -1,135 +1,90 @@
 "use client";
 
 import { useState, ReactNode } from "react";
-import AuthoritiesMap from "@/components/authorities/AuthoritiesMap";
-import MagamahUnified from "./MagamahUnified";
-import TrendChartCard from "@/components/ui/TrendChartCard";
-import ComparisonChart from "./ComparisonChart";
+import MapTabPanel from "./tabs/MapTabPanel";
+import TrendTabPanel from "./tabs/TrendTabPanel";
+import TrendUnifiedTabPanel from "./tabs/TrendUnifiedTabPanel";
+import ComparisonTabPanel from "./tabs/ComparisonTabPanel";
 
-// 1. שינינו את ה-Props לקבלת רכיב במקום דאטה
+
 type Props = {
   tableComponent: ReactNode;
+  onSelectAuthority?: (name: string | null) => void;
+  selectedAuthority?: string | null;
+  filters?: { search?: string; metric?: string; year?: string; valueType?: string; ageGroup?: string; gender?: string };
 };
 
-export default function AuthorityTabs({ tableComponent }: Props) {
+export default function AuthorityTabs({ tableComponent, onSelectAuthority, selectedAuthority, filters }: Props) 
+ {
   const [active, setActive] = useState<string>("map");
 
   return (
     <div dir="rtl">
-      {/* Content area with fixed height */}
       <div className="mt-6">
-        <div className="h-[520px] w-full">
-          {active === "map" && (
-            <div className="grid grid-cols-[520px_1fr] gap-4 h-full">
-              
-              {/* 2. כאן אנחנו מציגים את הטבלה שהועברה כ-Prop */}
-              <div className="w-full h-full min-h-0 overflow-auto"> 
-                {tableComponent}
-              </div>
+        {/* ✅ MAP TAB */}
+        {active === "map" && (
+          <MapTabPanel
+            tableComponent={tableComponent}
+            onSelectAuthority={onSelectAuthority}
+            selectedAuthority={selectedAuthority}
+            filters={filters}
+          />
+        )}
 
-              <div className="w-full h-full min-h-0 relative overflow-hidden">
-                <AuthoritiesMap key={active} />
-              </div>
-            </div>
-          )}
+        {/* ✅ TREND TAB */}
+        {active === "trend" && (
+          <TrendTabPanel selectedAuthority={selectedAuthority} />
+        )}
 
-          {active === "trend" && (
-            <div className="h-full w-full">
-              <TrendChartCard
-                className="h-full"
-                title="מגמת הרשויות שנבחרו במדד אוכלוסיה (אנשים) בשנים 2003 - 2023"
-                subtitle={'קובץ רשויות מקומיות, למ"ס'}
-                yLabel="אנשים"
-                xLabel="שנה"
-                series={[
-                  {
-                    name: "מגדל שמס",
-                    points: [
-                      { x: 2003, y: 8400 },
-                      { x: 2005, y: 9000 },
-                      { x: 2010, y: 9800 },
-                      { x: 2015, y: 10600 },
-                      { x: 2020, y: 11300 },
-                      { x: 2023, y: 11150 },
-                    ],
-                  },
-                  {
-                    name: "בוקעאתא",
-                    points: [
-                      { x: 2003, y: 5200 },
-                      { x: 2005, y: 5400 },
-                      { x: 2010, y: 5900 },
-                      { x: 2015, y: 6300 },
-                      { x: 2020, y: 6700 },
-                      { x: 2023, y: 6850 },
-                    ],
-                  },
-                ]}
-              />
-            </div>
-          )}
+        {/* ✅ TREND UNIFIED TAB */}
+        {active === "trendUnified" && <TrendUnifiedTabPanel />}
 
-          {active === "trendUnified" && (
-            <div className="h-full flex items-center justify-center p-4">
-              <MagamahUnified />
-            </div>
-          )}
-
-          {active === "chart" && (
-            <div className="h-full w-full flex flex-col">
-              <ComparisonChart />
-            </div>
-          )}
-
-        </div>
+        {/* ✅ COMPARISON TAB */}
+        {active === "chart" && <ComparisonTabPanel filters={filters} />}
       </div>
 
-      {/* Buttons fixed below content */}
-      <div className="mt-6 flex justify-center items-center gap-4 flex-wrap">
+      {/* ✅ NAVIGATION BUTTONS */}
+      <div className="mt-10 flex justify-center items-center gap-6 sm:gap-7 md:gap-8 flex-wrap">
         <button
           onClick={() => setActive("map")}
-          className={`w-[140px] py-3 rounded-lg flex items-center justify-center shadow-sm transition-colors duration-150 ${
+          className={`w-45 py-3.5 rounded-full text-base font-semibold shadow-sm ${
             active === "map"
-              ? "bg-sky-400 text-white shadow-md"
-              : "bg-card border border-border text-foreground"
+              ? "bg-primary text-primary-foreground"
+              : "bg-card border border-border text-foreground hover:ring-2 hover:ring-primary/20"
           }`}
         >
           מפה
         </button>
-
         <button
           onClick={() => setActive("chart")}
-          className={`w-[140px] py-3 rounded-lg flex items-center justify-center shadow-sm transition-colors duration-150 ${
+          className={`w-45 py-3.5 rounded-full text-base font-semibold shadow-sm ${
             active === "chart"
-              ? "bg-sky-400 text-white shadow-md"
-              : "bg-card border border-border text-foreground"
+              ? "bg-primary text-primary-foreground"
+              : "bg-card border border-border text-foreground hover:ring-2 hover:ring-primary/20"
           }`}
         >
           גרף
         </button>
-
         <button
           onClick={() => setActive("trend")}
-          className={`w-[140px] py-3 rounded-lg flex items-center justify-center shadow-sm transition-colors duration-150 ${
+          className={`w-45 py-3.5 rounded-full text-base font-semibold shadow-sm ${
             active === "trend"
-              ? "bg-sky-400 text-white shadow-md"
-              : "bg-card border border-border text-foreground"
+              ? "bg-primary text-primary-foreground"
+              : "bg-card border border-border text-foreground hover:ring-2 hover:ring-primary/20"
           }`}
         >
           מגמה
         </button>
-
         <button
           onClick={() => setActive("trendUnified")}
-          className={`w-[140px] py-3 rounded-lg flex items-center justify-center shadow-sm transition-colors duration-150 ${
+          className={`w-45 py-3.5 rounded-full text-base font-semibold shadow-sm ${
             active === "trendUnified"
-              ? "bg-sky-400 text-white shadow-md"
-              : "bg-card border border-border text-foreground"
+              ? "bg-primary text-primary-foreground"
+              : "bg-card border border-border text-foreground hover:ring-2 hover:ring-primary/20"
           }`}
         >
           מגמה אחודה
         </button>
-
       </div>
     </div>
   );
