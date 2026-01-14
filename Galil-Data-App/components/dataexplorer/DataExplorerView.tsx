@@ -7,9 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BarChart3, Table2, FileDown } from "lucide-react";
 
-import FilterDropdown from "@/components/FilterDropdown";
-import GlilElectricityTable from "@/components/dataexplorer/GlilElectricityTable";
-import BarChartCard from "@/components/authorities/BarChartCard";
+import DataExplorerFilters from "@/components/dataexplorer/DataExplorerFilters";
+import DataExplorerChart from "@/components/dataexplorer/DataExplorerChart";
+import DataExplorerTable from "@/components/dataexplorer/DataExplorerTable";
 import InsightsPanel from "@/components/dataexplorer/InsightsPanel";
 import { exportDataExplorerReport } from "@/components/dataexplorer/export-dataexplorer";
 import {
@@ -27,12 +27,14 @@ type Option = { label: string; value: string };
 type Props = {
   splitOptions: Option[];
   statusOptions: Option[];
+  scopeOptions: Option[];
   contentTypeOptions: Option[];
 };
 
 export default function DataExplorerView({
   splitOptions,
   statusOptions,
+  scopeOptions,
   contentTypeOptions,
 }: Props) {
   // Local UI state for the selected year / split / value type
@@ -41,6 +43,7 @@ export default function DataExplorerView({
     splitOptions[0]?.value ?? "top_women"
   );
   const [municipalStatus, setMunicipalStatus] = useState<string>("all");
+  const [clusterScope, setClusterScope] = useState<string>("cluster");
   const [valueKind, setValueKind] = useState<ValueKind>("number");
   const [genderData, setGenderData] = useState<TopGenderApiResponse | null>(
     null
@@ -53,17 +56,28 @@ export default function DataExplorerView({
 
     async function load() {
       try {
-        const qs =
-          municipalStatus && municipalStatus !== "all"
-            ? `?status=${encodeURIComponent(municipalStatus)}`
-            : "";
-        const res = await fetch(`/api/dataexplorer${qs}`);
-        if (!res.ok) {
+        // Build query parameters for API request
+        const hasStatusFilter = municipalStatus && municipalStatus !== "all";
+        const statusParam = hasStatusFilter
+          ? `status=${encodeURIComponent(municipalStatus)}`
+          : "";
+        const scopeParam = `scope=${encodeURIComponent(clusterScope)}`;
+
+        // Combine parameters
+        const queryString = hasStatusFilter
+          ? `?${statusParam}&${scopeParam}`
+          : `?${scopeParam}`;
+
+        // Fetch data from API
+        const response = await fetch(`/api/dataexplorer${queryString}`);
+        if (!response.ok) {
           throw new Error("Failed to load data explorer");
         }
-        const json = (await res.json()) as TopGenderApiResponse;
+
+        // Parse and update state
+        const data = (await response.json()) as TopGenderApiResponse;
         if (!cancelled) {
-          setGenderData(json);
+          setGenderData(data);
           setError(null);
         }
       } catch {
@@ -78,12 +92,13 @@ export default function DataExplorerView({
     return () => {
       cancelled = true;
     };
-  }, [municipalStatus]);
+  }, [municipalStatus, clusterScope]);
 
   // Reset filters back to the default selection
   function clearFilters() {
     setSplitBy(splitOptions[0]?.value ?? "top_women");
     setMunicipalStatus("all");
+    setClusterScope("cluster");
     setValueKind("number");
   }
 
@@ -106,13 +121,18 @@ export default function DataExplorerView({
         ? currentStatus.label
         : undefined;
 
+    // Resolve the human-readable label for the selected cluster scope
+    const currentScope = scopeOptions.find((opt) => opt.value === clusterScope);
+    const clusterScopeLabel = currentScope ? currentScope.label : undefined;
+
     // Special metric: gender distribution (two bars: women vs men)
     if (splitBy === "gender_distribution") {
       return buildGenderDistributionResult(
         genderData.women,
         genderData.men,
         valueKind,
-        municipalStatusLabel
+        municipalStatusLabel,
+        clusterScopeLabel
       );
     }
 
@@ -120,7 +140,8 @@ export default function DataExplorerView({
       return buildMenDataExplorerResult(
         genderData.men,
         valueKind,
-        municipalStatusLabel
+        municipalStatusLabel,
+        clusterScopeLabel
       );
     }
 
@@ -128,7 +149,8 @@ export default function DataExplorerView({
       return buildPeopleDataExplorerResult(
         genderData.people,
         valueKind,
-        municipalStatusLabel
+        municipalStatusLabel,
+        clusterScopeLabel
       );
     }
 
@@ -136,9 +158,18 @@ export default function DataExplorerView({
     return buildWomenDataExplorerResult(
       genderData.women,
       valueKind,
-      municipalStatusLabel
+      municipalStatusLabel,
+      clusterScopeLabel
     );
-  }, [genderData, splitBy, valueKind, municipalStatus, statusOptions]);
+  }, [
+    genderData,
+    splitBy,
+    valueKind,
+    municipalStatus,
+    statusOptions,
+    clusterScope,
+    scopeOptions,
+  ]);
 
   return (
     // Tabs between chart view and table view
@@ -196,55 +227,20 @@ export default function DataExplorerView({
         </CardHeader>
 
         <CardContent className="pt-0">
-          {/* Row of filter dropdowns (split, value type, year) */}
-          <div
-            className="
-              w-full
-              grid
-              grid-cols-1
-              gap-3
-              items-end
-              shrink-0
-              sm:grid-cols-2
-              md:flex
-              md:items-end
-              md:justify-start
-              md:gap-3
-            "
-          >
-            {/* Filter: choose how to split the data */}
-            <FilterDropdown
-              className="w-5/6 md:w-72"
-              label="בחירת מדד"
-              value={splitBy}
-              onChange={(v) => {
-                setSplitBy(v);
-              }}
-              options={splitOptions}
-            />
-
-            {/* Filter: municipal status (city / local council / regional council) */}
-            <FilterDropdown
-              className="w-full md:w-72"
-              label="מעמד מוניציפלי"
-              value={municipalStatus}
-              onChange={(v) => {
-                setMunicipalStatus(v);
-              }}
-              options={statusOptions}
-            />
-
-            {/* Filter: choose value kind (number / percent) */}
-            <FilterDropdown
-              className="w-full md:w-72"
-              label="סוג ערך"
-              value={valueKind}
-              onChange={(v) => {
-                setValueKind(v as ValueKind);
-              }}
-              options={contentTypeOptions}
-            />
-          </div>
+          <DataExplorerFilters
+            splitBy={splitBy}
+            municipalStatus={municipalStatus}
+            clusterScope={clusterScope}
+            valueKind={valueKind}
+            splitOptions={splitOptions}
+            statusOptions={statusOptions}
+            scopeOptions={scopeOptions}
+            contentTypeOptions={contentTypeOptions}
+            onSplitByChange={setSplitBy}
+            onMunicipalStatusChange={setMunicipalStatus}
+            onClusterScopeChange={setClusterScope}
+            onValueKindChange={setValueKind}
+          />
         </CardContent>
       </Card>
 
@@ -256,52 +252,22 @@ export default function DataExplorerView({
           municipalStatusLabel={
             statusOptions.find((opt) => opt.value === municipalStatus)?.label
           }
+          clusterScopeLabel={
+            scopeOptions.find((opt) => opt.value === clusterScope)?.label
+          }
         />
       )}
 
       <div className="flex-1 min-h-0">
         <TabsContent value="bar">
-          {/* Bar chart view (main visualization) */}
-          <div className="h-full min-h-150 w-full rounded-xl flex p-4">
-            {/* BarChartCard renders the chart based on the calculated result */}
-            {result ? (
-              <BarChartCard
-                title={result.title}
-                rows={result.rows}
-                valueKind={valueKind}
-                tickStep={result.tickStep}
-                yLabel={result.yLabel}
-                xLabel={result.xLabel}
-                cardClassName="w-full"
-                cardContentClassName="h-[520px] p-3"
-              />
-            ) : (
-              <div className="w-full flex items-center justify-center text-sm text-muted-foreground">
-                {error ?? "טוען נתונים..."}
-              </div>
-            )}
-          </div>
+          <DataExplorerChart
+            result={result}
+            valueKind={valueKind}
+            error={error}
+          />
         </TabsContent>
-
         <TabsContent value="table" className="h-full m-0">
-          {/* Table view */}
-          <div className="h-full min-h-150 rounded-xl flex justify-center p-4">
-            {result ? (
-              <GlilElectricityTable
-                title={result.title}
-                headers={result.tableHeaders}
-                rows={result.tableRows}
-                className="m-10"
-                tableClassName="min-w-[700px] min-h-[300px]"
-                enableSearch={true}
-                searchPlaceholder="חיפוש ברשויות..."
-              />
-            ) : (
-              <div className="w-full flex items-center justify-center text-sm text-muted-foreground">
-                {error ?? "טוען נתונים..."}
-              </div>
-            )}
-          </div>
+          <DataExplorerTable result={result} error={error} />
         </TabsContent>
       </div>
     </Tabs>
