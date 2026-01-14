@@ -68,6 +68,12 @@ export const MUNICIPAL_STATUS_OPTIONS = [
   { label: "מועצה אזורית", value: "מועצה אזורית" },
 ] as const;
 
+// Cluster scope options: either only cluster authorities or all Israeli authorities.
+export const CLUSTER_SCOPE_OPTIONS = [
+  { label: "אשכול גליל מזרחי", value: "cluster" },
+  { label: "כל הארץ", value: "nationwide" },
+] as const;
+
 /**
  * Builds the dropdown options for the Data Explorer filters.
  * - splitOptions: which metric to show (top women / top men / top people).
@@ -83,6 +89,7 @@ export function getDataExplorerOptions() {
       { label: TOP_GENDER_DISTRIBUTION_LABEL, value: "gender_distribution" },
     ],
     statusOptions: MUNICIPAL_STATUS_OPTIONS,
+    scopeOptions: CLUSTER_SCOPE_OPTIONS,
     contentTypeOptions: [
       { label: "מספרי", value: "number" },
       { label: "אחוזים", value: "percent" },
@@ -143,17 +150,20 @@ function buildGenderTableRows<T extends { name: string }>(
 function buildExplorerTitle(
   valueKind: ValueKind,
   municipalStatusLabel: string | undefined,
+  clusterScopeLabel: string | undefined,
   {
     subjectText,
     numberText,
     percentText,
     isGenderDistribution = false,
+    actualCount,
   }: {
     metricLabel: string;    // Short label that appears in the metric filter (e.g. "לפי נשים").
     subjectText: string;    // Part describing what we rank by (e.g. "מספר הנשים הגבוה ביותר").
     numberText: string;// Text used when showing absolute numbers.
     percentText: string;  // Text used when showing percentages.
     isGenderDistribution?: boolean; // Flag to indicate if this is gender distribution view
+    actualCount?: number; // Actual number of authorities in the result
   }
 ): string {
   const valueText =
@@ -164,12 +174,19 @@ function buildExplorerTitle(
       ? ` - מעמד מוניציפלי: ${municipalStatusLabel}`
       : "";
 
+  const scopeSuffix = clusterScopeLabel ? ` - ${clusterScopeLabel}` : "";
+
   // For gender distribution, don't use "10 הרשויות עם" prefix
   if (isGenderDistribution) {
-    return `${subjectText} ${valueText}${statusSuffix}`;
+    return `${subjectText} ${valueText}${statusSuffix}${scopeSuffix}`;
   }
 
-  return `10 הרשויות עם ${subjectText} ${valueText}${statusSuffix}`;
+  // Show "10" only if there are 10 or more authorities, otherwise show without number
+  const countPrefix = actualCount && actualCount >= 10 
+    ? "10 הרשויות עם"
+    : "הרשויות עם";
+
+  return `${countPrefix} ${subjectText} ${valueText}${statusSuffix}${scopeSuffix}`;
 }
 
 /**
@@ -250,16 +267,18 @@ export function createTopPeopleResponse(
 export function buildWomenDataExplorerResult(
   response: TopWomenResponse,
   valueKind: ValueKind,
-  municipalStatusLabel?: string
+  municipalStatusLabel?: string,
+  clusterScopeLabel?: string
 ): DataExplorerResult {
   const { rows, totalWomen } = response;
 
   // Build the human‑readable title for the page / chart / table.
-  const title = buildExplorerTitle(valueKind, municipalStatusLabel, {
+  const title = buildExplorerTitle(valueKind, municipalStatusLabel, clusterScopeLabel, {
     metricLabel: TOP_WOMEN_METRIC_LABEL,
     subjectText: "מספר הנשים הגבוה ביותר",
     numberText: "מספר נשים",
-    percentText: "אחוזים מתוך כלל הנשים",
+    percentText: "אחוזים",
+    actualCount: rows.length,
   });
 
   return buildMetricDataExplorerResult<TopWomenAuthorityRow>({
@@ -281,16 +300,18 @@ export function buildWomenDataExplorerResult(
 export function buildMenDataExplorerResult(
   response: TopMenResponse,
   valueKind: ValueKind,
-  municipalStatusLabel?: string
+  municipalStatusLabel?: string,
+  clusterScopeLabel?: string
 ): DataExplorerResult {
   const { rows, totalMen } = response;
 
   // Build the human‑readable title for the page / chart / table.
-  const title = buildExplorerTitle(valueKind, municipalStatusLabel, {
+  const title = buildExplorerTitle(valueKind, municipalStatusLabel, clusterScopeLabel, {
     metricLabel: TOP_MEN_METRIC_LABEL,
     subjectText: "מספר הגברים הגבוה ביותר",
     numberText: "מספר גברים",
-    percentText: "אחוזים מתוך כלל הגברים",
+    percentText: "אחוזים",
+    actualCount: rows.length,
   });
 
   return buildMetricDataExplorerResult<TopMenAuthorityRow>({
@@ -312,16 +333,18 @@ export function buildMenDataExplorerResult(
 export function buildPeopleDataExplorerResult(
   response: TopPeopleResponse,
   valueKind: ValueKind,
-  municipalStatusLabel?: string
+  municipalStatusLabel?: string,
+  clusterScopeLabel?: string
 ): DataExplorerResult {
   const { rows, totalPeople } = response;
 
   // Build the human‑readable title for the page / chart / table.
-  const title = buildExplorerTitle(valueKind, municipalStatusLabel, {
+  const title = buildExplorerTitle(valueKind, municipalStatusLabel, clusterScopeLabel, {
     metricLabel: TOP_PEOPLE_METRIC_LABEL,
     subjectText: "מספר התושבים הגבוה ביותר",
     numberText: "מספר אנשים",
-    percentText: "אחוזים מתוך כלל האוכלוסייה",
+    percentText: "אחוזים",
+    actualCount: rows.length,
   });
 
   return buildMetricDataExplorerResult<TopPeopleAuthorityRow>({
@@ -348,17 +371,18 @@ export function buildGenderDistributionResult(
   womenResponse: TopWomenResponse,
   menResponse: TopMenResponse,
   valueKind: ValueKind,
-  municipalStatusLabel?: string
+  municipalStatusLabel?: string,
+  clusterScopeLabel?: string
 ): DataExplorerResult {
   const totalWomen = womenResponse.totalWomen;
   const totalMen = menResponse.totalMen;
   const grandTotal = totalWomen + totalMen;
 
-  const title = buildExplorerTitle(valueKind, municipalStatusLabel, {
+  const title = buildExplorerTitle(valueKind, municipalStatusLabel, clusterScopeLabel, {
     metricLabel: TOP_GENDER_DISTRIBUTION_LABEL,
     subjectText: "השוואת אוכלוסייה לפי מגדר באשכול גליל מזרחי",
     numberText: "מספר תושבים",
-    percentText: "אחוזים מתוך כלל האוכלוסייה",
+    percentText: "אחוזים",
     isGenderDistribution: true,
   });
 

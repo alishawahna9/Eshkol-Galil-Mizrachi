@@ -4,7 +4,7 @@ import { getDataExplorerOptions } from "@/components/dataexplorer/dataexplorer-s
 
 export default function DataExplorerPage() {
   // Options for metric / value type dropdowns
-  const { splitOptions, contentTypeOptions, statusOptions } =
+  const { splitOptions, contentTypeOptions, statusOptions, scopeOptions } =
     getDataExplorerOptions();
 
   return (
@@ -18,6 +18,10 @@ export default function DataExplorerPage() {
         <DataExplorerView
           splitOptions={splitOptions}
           statusOptions={statusOptions.map((o) => ({
+            label: o.label,
+            value: o.value,
+          }))}
+          scopeOptions={scopeOptions.map((o) => ({
             label: o.label,
             value: o.value,
           }))}

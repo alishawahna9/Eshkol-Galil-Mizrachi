@@ -8,14 +8,31 @@ import {
 	createTopMenResponse,
   	createTopPeopleResponse,
 } from "@/components/dataexplorer/dataexplorer-service";
+import { getAuthoritiesOfTheEasternGalilee } from "@/lib/cluster-authorities";
 
 // GET /api/dataexplorer
 // Returns the "top 10" authorities by women / men / people,
-// optionally filtered by municipalStatus query string.
+// optionally filtered by municipalStatus and clusterScope query strings.
 export async function GET(request: NextRequest) {
 	try {
 		const { searchParams } = new URL(request.url);
 		const status = searchParams.get("status");
+		const scope = searchParams.get("scope") || "cluster";
+
+		// If scope is "cluster", get only authorities that exist in PopulationData
+		let clusterSymbols: number[] | null = null;
+		if (scope === "cluster") {
+			clusterSymbols = await getAuthoritiesOfTheEasternGalilee();
+
+			if (clusterSymbols.length === 0) {
+				const empty: TopGenderApiResponse = {
+					women: { rows: [], totalWomen: 0 },
+					men: { rows: [], totalMen: 0 },
+					people: { rows: [], totalPeople: 0 },
+				};
+				return NextResponse.json(empty);
+			}
+		}
 
 		// If a municipal status filter was provided (and is not "all"),
 		// resolve the matching authority symbols first.
@@ -36,6 +53,17 @@ export async function GET(request: NextRequest) {
 			}
 		}
 
+		// Combine filters: if both clusterSymbols and symbolFilter exist,
+		// use the intersection; otherwise use whichever is not null.
+		let finalSymbolFilter: number[] | null = null;
+		if (clusterSymbols && symbolFilter) {
+			finalSymbolFilter = symbolFilter.filter((s) => clusterSymbols.includes(s));
+		} else if (clusterSymbols) {
+			finalSymbolFilter = clusterSymbols;
+		} else if (symbolFilter) {
+			finalSymbolFilter = symbolFilter;
+		}
+
 		// Fetch raw rows from the database
 		const genderRows = await prisma.authorityDemographics.findMany({
 			select: {
@@ -45,7 +73,7 @@ export async function GET(request: NextRequest) {
 				symbol: true,
 			},
 			where: {
-				...(symbolFilter ? { symbol: { in: symbolFilter } } : {}),
+				...(finalSymbolFilter ? { symbol: { in: finalSymbolFilter } } : {}),
 				OR: [
 					{ women: { not: null } },
 					{ men: { not: null } },

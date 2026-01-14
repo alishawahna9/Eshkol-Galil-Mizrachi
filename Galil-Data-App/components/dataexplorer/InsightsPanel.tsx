@@ -8,13 +8,19 @@ type Props = {
   genderData: TopGenderApiResponse;
   splitBy: string; // Current metric: 'gender_distribution', 'top_women', 'top_men', or 'top_people'
   municipalStatusLabel?: string; // Label of selected municipal status filter
+  clusterScopeLabel?: string; // Label of selected cluster scope (cluster/nationwide)
 };
 
 /**
  * InsightsPanel component - displays automatic insights based on the current data view
  * Generates different insights depending on the selected metric (women/men/people/gender distribution)
  */
-export default function InsightsPanel({ genderData, splitBy, municipalStatusLabel }: Props) {
+export default function InsightsPanel({
+  genderData,
+  splitBy,
+  municipalStatusLabel,
+  clusterScopeLabel,
+}: Props) {
   const insights: string[] = []; // Array to store generated insight messages
 
   // Condition: When viewing overall gender distribution across all authorities
@@ -28,13 +34,17 @@ export default function InsightsPanel({ genderData, splitBy, municipalStatusLabe
     const menPercent = ((totalMen / total) * 100).toFixed(1);
 
     // Build status suffix for insights when a specific municipal status is selected
-    const statusSuffix = municipalStatusLabel && municipalStatusLabel !== "כל המעמדות" 
-      ? ` (${municipalStatusLabel})` 
-      : "";
+    const statusSuffix =
+      municipalStatusLabel && municipalStatusLabel !== "כל המעמדות"
+        ? ` (${municipalStatusLabel})`
+        : "";
+
+    // Build scope prefix based on selected scope
+    const scopePrefix = clusterScopeLabel || "באשכול גליל מזרחי";
 
     // Insight 1: Total population in the cluster
     insights.push(
-      `באשכול גליל מזרחי יש ${total.toLocaleString("he-IL")} תושבים${statusSuffix}`
+      `${scopePrefix} יש ${total.toLocaleString("he-IL")} תושבים${statusSuffix}`
     );
 
     // Insight 2: Gender breakdown with percentages
@@ -62,9 +72,10 @@ export default function InsightsPanel({ genderData, splitBy, municipalStatusLabe
     let metricName = "נשים"; // Default metric name in Hebrew
 
     // Build status suffix for insights when a specific municipal status is selected
-    const statusSuffix = municipalStatusLabel && municipalStatusLabel !== "כל המעמדות" 
-      ? ` (${municipalStatusLabel})` 
-      : "";
+    const statusSuffix =
+      municipalStatusLabel && municipalStatusLabel !== "כל המעמדות"
+        ? ` (${municipalStatusLabel})`
+        : "";
 
     // Condition: When viewing top 10 authorities by women population
     // Provides: Leading authority stats, gap to 2nd place, top 10 concentration, and size ratio
@@ -75,7 +86,7 @@ export default function InsightsPanel({ genderData, splitBy, municipalStatusLabe
       // Condition: If there is at least one authority in the results
       // Provides: Leading authority name, value, and percentage of total
       if (rows.length > 0) {
-        const topAuthority = rows[0]; // Leading authority
+        const topAuthority = rows[0];
         const topValue = topAuthority.women;
         const topPercent = ((topValue / total) * 100).toFixed(1);
 
@@ -106,8 +117,13 @@ export default function InsightsPanel({ genderData, splitBy, municipalStatusLabe
         const topSum = rows.reduce((sum, row) => sum + row.women, 0);
         const topSumPercent = ((topSum / total) * 100).toFixed(1);
 
+        const authoritiesText =
+          rows.length >= 10 ? "10 הרשויות המובילות" : "הרשויות המובילות";
+        const scopeText = clusterScopeLabel
+          ? `ב${clusterScopeLabel}`
+          : "באשכול";
         insights.push(
-          `10 הרשויות המובילות מכילות ${topSumPercent}% מכלל ה${metricName} באשכול`
+          `${authoritiesText} מכילות ${topSumPercent}% מכלל ה${metricName} ${scopeText}`
         );
 
         // Insight 4: Ratio between largest and smallest authority in top 10
@@ -161,8 +177,13 @@ export default function InsightsPanel({ genderData, splitBy, municipalStatusLabe
         const topSum = rows.reduce((sum, row) => sum + row.men, 0);
         const topSumPercent = ((topSum / total) * 100).toFixed(1);
 
+        const authoritiesText =
+          rows.length >= 10 ? "10 הרשויות המובילות" : "הרשויות המובילות";
+        const scopeText = clusterScopeLabel
+          ? `ב${clusterScopeLabel}`
+          : "באשכול";
         insights.push(
-          `10 הרשויות המובילות מכילות ${topSumPercent}% מכלל ה${metricName} באשכול${statusSuffix}`
+          `${authoritiesText} מכילות ${topSumPercent}% מכלל ה${metricName} ${scopeText}${statusSuffix}`
         );
 
         // Condition: If there are exactly 10 authorities (full top 10 list)
@@ -215,8 +236,13 @@ export default function InsightsPanel({ genderData, splitBy, municipalStatusLabe
         const topSum = rows.reduce((sum, row) => sum + row.people, 0);
         const topSumPercent = ((topSum / total) * 100).toFixed(1);
 
+        const authoritiesText =
+          rows.length >= 10 ? "10 הרשויות המובילות" : "הרשויות המובילות";
+        const scopeText = clusterScopeLabel
+          ? `ב${clusterScopeLabel}`
+          : "באשכול";
         insights.push(
-          `10 הרשויות המובילות מכילות ${topSumPercent}% מכלל ה${metricName} באשכול${statusSuffix}`
+          `${authoritiesText} מכילות ${topSumPercent}% מכלל ה${metricName} ${scopeText}${statusSuffix}`
         );
 
         // Condition: If there are exactly 10 authorities (full top 10 list)
