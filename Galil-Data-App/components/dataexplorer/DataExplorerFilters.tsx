@@ -18,6 +18,17 @@ type Props = {
   onValueKindChange: (value: ValueKind) => void;
 };
 
+/**
+ * DataExplorerFilters - Centralized filter controls for the Data Explorer screen.
+ *
+ * Displays 4 main filters:
+ * 1. Metric selection (splitBy) - women/men/people
+ * 2. Municipal status (municipalStatus) - city/local council/regional council
+ * 3. Scope (clusterScope) - Galil Mizrachi cluster only or nationwide
+ * 4. Value kind (valueKind) - absolute numbers or percentages
+ *
+ * Each filter change triggers the appropriate callback and updates the results.
+ */
 export default function DataExplorerFilters({
   splitBy,
   municipalStatus,

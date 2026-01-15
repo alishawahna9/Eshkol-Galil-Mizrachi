@@ -1,19 +1,113 @@
 "use client";
 
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lightbulb } from "lucide-react";
 import { TopGenderApiResponse } from "./dataexplorer-service";
 
 type Props = {
   genderData: TopGenderApiResponse;
-  splitBy: string; // Current metric: 'gender_distribution', 'top_women', 'top_men', or 'top_people'
-  municipalStatusLabel?: string; // Label of selected municipal status filter
-  clusterScopeLabel?: string; // Label of selected cluster scope (cluster/nationwide)
+  splitBy: string;
+  municipalStatusLabel?: string;
+  clusterScopeLabel?: string;
 };
 
 /**
- * InsightsPanel component - displays automatic insights based on the current data view
- * Generates different insights depending on the selected metric (women/men/people/gender distribution)
+ * Configuration mapping for different metric types.
+ * Maps splitBy values to their corresponding data keys and display names.
+ */
+const METRIC_CONFIG = {
+  top_women: { key: "women" as const, name: "נשים" },
+  top_men: { key: "men" as const, name: "גברים" },
+  top_people: { key: "people" as const, name: "תושבים" },
+} as const;
+
+/**
+ * Generates automatic insights for top N authorities data.
+ *
+ * Creates 3-4 insights:
+ * 1. Leading authority with count and percentage
+ * 2. Gap between 1st and 2nd place (if exists)
+ * 3. Percentage of total represented by displayed authorities
+ * 4. Ratio between first and last authority (if multiple exist)
+ *
+ */
+function generateTopInsights<T extends Record<string, any>>(
+  rows: T[],
+  total: number,
+  metricName: string,
+  metricKey: string,
+  statusSuffix: string,
+  scopeText: string
+): string[] {
+  if (rows.length === 0) return [];
+
+  const top = rows[0];
+  const topValue = top[metricKey] as number;
+  const insights = [
+    `${top.name} מובילה עם ${topValue.toLocaleString(
+      "he-IL"
+    )} ${metricName} (${((topValue / total) * 100).toFixed(1)}%)`,
+  ];
+
+  if (rows.length > 1) {
+    const second = rows[1];
+    const secondValue = second[metricKey] as number;
+    const gap = topValue - secondValue;
+    insights.push(
+      `הפער למקום השני (${second.name}) הוא ${gap.toLocaleString(
+        "he-IL"
+      )} ${metricName} (${((gap / secondValue) * 100).toFixed(1)}% יותר)`
+    );
+  }
+
+  const topSum = rows.reduce((sum, row) => sum + (row[metricKey] as number), 0);
+  insights.push(
+    `${
+      rows.length >= 10 ? "10 הרשויות המובילות" : "הרשויות המובילות"
+    } מכילות ${((topSum / total) * 100).toFixed(
+      1
+    )}% מכלל ה${metricName} ${scopeText}${statusSuffix}`
+  );
+
+  // Ratio between first and last authority
+  if (rows.length > 1) {
+    const lastAuthority = rows[rows.length - 1];
+    const lastValue = lastAuthority[metricKey] as number;
+    const ratio = (topValue / lastValue).toFixed(1);
+
+    // Hebrew ordinal numbers for positions 2-10
+    const ordinals: Record<number, string> = {
+      2: "השנייה",
+      3: "השלישית",
+      4: "הרביעית",
+      5: "החמישית",
+      6: "השישית",
+      7: "השביעית",
+      8: "השמינית",
+      9: "התשיעית",
+      10: "העשירית",
+    };
+    const position = ordinals[rows.length] || `ה-${rows.length}`;
+
+    insights.push(
+      `${top.name} גדולה פי ${ratio} מ-${lastAuthority.name} (הרשות ${position})`
+    );
+  }
+
+  return insights;
+}
+
+/**
+ * InsightsPanel - Displays automatic insights based on the selected data view.
+ *
+ * Generates contextual insights that change based on:
+ * - splitBy: gender_distribution, top_women, top_men, or top_people
+ * - municipalStatusLabel: filters by municipal status (city/council/etc.)
+ * - clusterScopeLabel: scope of analysis (cluster vs nationwide)
+ *
+ * For gender_distribution: Shows total population breakdown and gender comparison.
+ * For top_* views: Shows insights about leading authorities, gaps, and ratios.
  */
 export default function InsightsPanel({
   genderData,
@@ -21,264 +115,89 @@ export default function InsightsPanel({
   municipalStatusLabel,
   clusterScopeLabel,
 }: Props) {
-  const insights: string[] = []; // Array to store generated insight messages
-
-  // Condition: When viewing overall gender distribution across all authorities
-  // Provides: Total population count, gender percentages, and which gender has more people
-  if (splitBy === "gender_distribution") {
-    // Generate insights for gender distribution view
-    const totalWomen = genderData.women.totalWomen;
-    const totalMen = genderData.men.totalMen;
-    const total = totalWomen + totalMen;
-    const womenPercent = ((totalWomen / total) * 100).toFixed(1);
-    const menPercent = ((totalMen / total) * 100).toFixed(1);
-
-    // Build status suffix for insights when a specific municipal status is selected
+  const insights = useMemo(() => {
     const statusSuffix =
       municipalStatusLabel && municipalStatusLabel !== "כל המעמדות"
         ? ` (${municipalStatusLabel})`
         : "";
-
-    // Build scope prefix based on selected scope
     const scopePrefix = clusterScopeLabel || "באשכול גליל מזרחי";
+    const scopeText = clusterScopeLabel ? `ב${clusterScopeLabel}` : "באשכול";
 
-    // Insight 1: Total population in the cluster
-    insights.push(
-      `${scopePrefix} יש ${total.toLocaleString("he-IL")} תושבים${statusSuffix}`
-    );
+    // Special case: gender distribution shows aggregate statistics for the entire cluster
+    if (splitBy === "gender_distribution") {
+      const { totalWomen } = genderData.women;
+      const { totalMen } = genderData.men;
+      const total = totalWomen + totalMen;
+      const diff = Math.abs(totalWomen - totalMen);
 
-    // Insight 2: Gender breakdown with percentages
-    insights.push(
-      `${womenPercent}% נשים (${totalWomen.toLocaleString(
-        "he-IL"
-      )}) ו-${menPercent}% גברים (${totalMen.toLocaleString("he-IL")})`
-    );
-
-    // Insight 3: Gender difference (which gender has more people)
-    // Condition: If there are more women than men
-    // Provides: The exact difference showing how many more women there are
-    if (totalWomen > totalMen) {
-      const diff = totalWomen - totalMen;
-      insights.push(`יש ${diff.toLocaleString("he-IL")} נשים יותר מגברים`);
-    } else {
-      // Condition: If there are more men than women (or equal)
-      // Provides: The exact difference showing how many more men there are
-      const diff = totalMen - totalWomen;
-      insights.push(`יש ${diff.toLocaleString("he-IL")} גברים יותר מנשים`);
+      return [
+        `${scopePrefix} יש ${total.toLocaleString(
+          "he-IL"
+        )} תושבים${statusSuffix}`,
+        `${((totalWomen / total) * 100).toFixed(
+          1
+        )}% נשים (${totalWomen.toLocaleString("he-IL")}) ו-${(
+          (totalMen / total) *
+          100
+        ).toFixed(1)}% גברים (${totalMen.toLocaleString("he-IL")})`,
+        `יש ${diff.toLocaleString("he-IL")} ${
+          totalWomen > totalMen ? "נשים יותר מגברים" : "גברים יותר מנשים"
+        }`,
+      ];
     }
-  } else {
-    // Generate insights for top authorities view (women/men/people)
-    let total = genderData.women.totalWomen;
-    let metricName = "נשים"; // Default metric name in Hebrew
 
-    // Build status suffix for insights when a specific municipal status is selected
-    const statusSuffix =
-      municipalStatusLabel && municipalStatusLabel !== "כל המעמדות"
-        ? ` (${municipalStatusLabel})`
-        : "";
+    // For top_women, top_men, top_people: generate insights about leading authorities
+    const config = METRIC_CONFIG[splitBy as keyof typeof METRIC_CONFIG];
 
-    // Condition: When viewing top 10 authorities by women population
-    // Provides: Leading authority stats, gap to 2nd place, top 10 concentration, and size ratio
-    if (splitBy === "top_women") {
-      const rows = genderData.women.rows; // Top 10 authorities by women population
-      total = genderData.women.totalWomen; // Total women in all authorities
+    if (!config) return [];
 
-      // Condition: If there is at least one authority in the results
-      // Provides: Leading authority name, value, and percentage of total
-      if (rows.length > 0) {
-        const topAuthority = rows[0];
-        const topValue = topAuthority.women;
-        const topPercent = ((topValue / total) * 100).toFixed(1);
-
-        // Insight 1: Leading authority with its value and percentage
-        insights.push(
-          `${topAuthority.name} מובילה עם ${topValue.toLocaleString(
-            "he-IL"
-          )} ${metricName} (${topPercent}%)`
-        );
-
-        // Insight 2: Gap between first and second place
-        // Condition: If there are at least 2 authorities in the results
-        // Provides: Absolute and percentage gap between 1st and 2nd place authorities
-        if (rows.length > 1) {
-          const secondAuthority = rows[1];
-          const secondValue = secondAuthority.women;
-          const gap = topValue - secondValue;
-          const gapPercent = ((gap / secondValue) * 100).toFixed(1);
-
-          insights.push(
-            `הפער למקום השני (${secondAuthority.name}) הוא ${gap.toLocaleString(
-              "he-IL"
-            )} ${metricName} (${gapPercent}% יותר)`
-          );
-        }
-
-        // Insight 3: Top 10 concentration - what percentage of total do they represent
-        const topSum = rows.reduce((sum, row) => sum + row.women, 0);
-        const topSumPercent = ((topSum / total) * 100).toFixed(1);
-
-        const authoritiesText =
-          rows.length >= 10 ? "10 הרשויות המובילות" : "הרשויות המובילות";
-        const scopeText = clusterScopeLabel
-          ? `ב${clusterScopeLabel}`
-          : "באשכול";
-        insights.push(
-          `${authoritiesText} מכילות ${topSumPercent}% מכלל ה${metricName} ${scopeText}`
-        );
-
-        // Insight 4: Ratio between largest and smallest authority in top 10
-        // Condition: If there are exactly 10 authorities (full top 10 list)
-        // Provides: Size ratio showing how many times larger the 1st place is compared to 10th
-        if (rows.length === 10) {
-          const lastAuthority = rows[rows.length - 1];
-          const lastValue = lastAuthority.women;
-          const ratioToFirst = (topValue / lastValue).toFixed(1);
-
-          insights.push(
-            `${topAuthority.name} גדולה פי ${ratioToFirst} מ-${lastAuthority.name} (הרשות העשירית)`
-          );
-        }
-      }
-    } else if (splitBy === "top_men") {
-      // Condition: When viewing top 10 authorities by men population
-      // Provides: Same insights as top_women but for men (leading authority, gaps, concentration, ratio)
-      const rows = genderData.men.rows; // Top 10 authorities by men population
-      total = genderData.men.totalMen; // Total men in all authorities
-      metricName = "גברים"; // Update metric name to "men" in Hebrew
-
-      // Condition: If there is at least one authority in the results
-      // Provides: Leading authority name, value, and percentage of total men
-      if (rows.length > 0) {
-        const topAuthority = rows[0];
-        const topValue = topAuthority.men;
-        const topPercent = ((topValue / total) * 100).toFixed(1);
-
-        insights.push(
-          `${topAuthority.name} מובילה עם ${topValue.toLocaleString(
-            "he-IL"
-          )} ${metricName} (${topPercent}%)`
-        );
-
-        // Condition: If there are at least 2 authorities in the results
-        // Provides: Absolute and percentage gap between 1st and 2nd place for men
-        if (rows.length > 1) {
-          const secondAuthority = rows[1];
-          const secondValue = secondAuthority.men;
-          const gap = topValue - secondValue;
-          const gapPercent = ((gap / secondValue) * 100).toFixed(1);
-
-          insights.push(
-            `הפער למקום השני (${secondAuthority.name}) הוא ${gap.toLocaleString(
-              "he-IL"
-            )} ${metricName} (${gapPercent}% יותר)`
-          );
-        }
-
-        const topSum = rows.reduce((sum, row) => sum + row.men, 0);
-        const topSumPercent = ((topSum / total) * 100).toFixed(1);
-
-        const authoritiesText =
-          rows.length >= 10 ? "10 הרשויות המובילות" : "הרשויות המובילות";
-        const scopeText = clusterScopeLabel
-          ? `ב${clusterScopeLabel}`
-          : "באשכול";
-        insights.push(
-          `${authoritiesText} מכילות ${topSumPercent}% מכלל ה${metricName} ${scopeText}${statusSuffix}`
-        );
-
-        // Condition: If there are exactly 10 authorities (full top 10 list)
-        // Provides: Size ratio showing how many times larger the 1st is compared to 10th for men
-        if (rows.length === 10) {
-          const lastAuthority = rows[rows.length - 1];
-          const lastValue = lastAuthority.men;
-          const ratioToFirst = (topValue / lastValue).toFixed(1);
-
-          insights.push(
-            `${topAuthority.name} גדולה פי ${ratioToFirst} מ-${lastAuthority.name} (הרשות העשירית)`
-          );
-        }
-      }
-    } else if (splitBy === "top_people") {
-      // Condition: When viewing top 10 authorities by total population (men + women)
-      // Provides: Same insights as top_women/men but for total population
-      const rows = genderData.people.rows; // Top 10 authorities by total population
-      total = genderData.people.totalPeople; // Total population in all authorities
-      metricName = "תושבים"; // Update metric name to "residents" in Hebrew
-
-      // Condition: If there is at least one authority in the results
-      // Provides: Leading authority name, value, and percentage of total population
-      if (rows.length > 0) {
-        const topAuthority = rows[0];
-        const topValue = topAuthority.people;
-        const topPercent = ((topValue / total) * 100).toFixed(1);
-
-        insights.push(
-          `${topAuthority.name} מובילה עם ${topValue.toLocaleString(
-            "he-IL"
-          )} ${metricName} (${topPercent}%)`
-        );
-
-        // Condition: If there are at least 2 authorities in the results
-        // Provides: Absolute and percentage gap between 1st and 2nd place for population
-        if (rows.length > 1) {
-          const secondAuthority = rows[1];
-          const secondValue = secondAuthority.people;
-          const gap = topValue - secondValue;
-          const gapPercent = ((gap / secondValue) * 100).toFixed(1);
-
-          insights.push(
-            `הפער למקום השני (${secondAuthority.name}) הוא ${gap.toLocaleString(
-              "he-IL"
-            )} ${metricName} (${gapPercent}% יותר)`
-          );
-        }
-
-        const topSum = rows.reduce((sum, row) => sum + row.people, 0);
-        const topSumPercent = ((topSum / total) * 100).toFixed(1);
-
-        const authoritiesText =
-          rows.length >= 10 ? "10 הרשויות המובילות" : "הרשויות המובילות";
-        const scopeText = clusterScopeLabel
-          ? `ב${clusterScopeLabel}`
-          : "באשכול";
-        insights.push(
-          `${authoritiesText} מכילות ${topSumPercent}% מכלל ה${metricName} ${scopeText}${statusSuffix}`
-        );
-
-        // Condition: If there are exactly 10 authorities (full top 10 list)
-        // Provides: Size ratio showing how many times larger the 1st is compared to 10th for population
-        if (rows.length === 10) {
-          const lastAuthority = rows[rows.length - 1];
-          const lastValue = lastAuthority.people;
-          const ratioToFirst = (topValue / lastValue).toFixed(1);
-
-          insights.push(
-            `${topAuthority.name} גדולה פי ${ratioToFirst} מ-${lastAuthority.name} (הרשות העשירית)`
-          );
-        }
-      }
+    if (config.key === "women") {
+      return generateTopInsights(
+        genderData.women.rows,
+        genderData.women.totalWomen,
+        config.name,
+        config.key,
+        statusSuffix,
+        scopeText
+      );
     }
-  }
 
-  // Don't render the panel if no insights were generated
-  if (insights.length === 0) {
-    return null;
-  }
+    if (config.key === "men") {
+      return generateTopInsights(
+        genderData.men.rows,
+        genderData.men.totalMen,
+        config.name,
+        config.key,
+        statusSuffix,
+        scopeText
+      );
+    }
+
+    if (config.key === "people") {
+      return generateTopInsights(
+        genderData.people.rows,
+        genderData.people.totalPeople,
+        config.name,
+        config.key,
+        statusSuffix,
+        scopeText
+      );
+    }
+
+    return [];
+  }, [genderData, splitBy, municipalStatusLabel, clusterScopeLabel]);
 
   return (
     <Card className="mt-4" dir="rtl">
-      {/* Card header section */}
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-bold flex items-center gap-2">
           <Lightbulb className="w-5 h-5 text-yellow-500" />
           תובנות אוטומטיות
         </CardTitle>
       </CardHeader>
-
-      {/* Card content section containing the insights list */}
       <CardContent>
+        {/* Insights list */}
         <ul className="space-y-2">
-          {/* Map each insight to a list item with bullet point */}
           {insights.map((insight, idx) => (
             <li key={idx} className="flex items-start gap-2">
               <span className="text-primary font-bold">•</span>
