@@ -8,6 +8,19 @@ type ExportParams = {
   splitBy: string;
 };
 
+/**
+ * Exports Data Explorer report to Excel (.xls) format.
+ * 
+ * Creates an HTML-based Excel file with:
+ * - Report title and date
+ * - Table with authority names, counts, and percentages
+ * - Total row summarizing all displayed data
+ * 
+ * Handles two export types:
+ * 1. Gender distribution - exports women/men totals for the cluster
+ * 2. Top authorities - exports top N authorities for the selected metric (women/men/people)
+ * 
+ */
 export function exportDataExplorerReport({ result, genderData, splitBy }: ExportParams): void {
   // Collect data rows with actual counts
   const rows: Array<{ name: string; count: number; percent: string }> = [];

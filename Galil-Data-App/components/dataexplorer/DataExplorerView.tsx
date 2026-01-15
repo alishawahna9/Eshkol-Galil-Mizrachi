@@ -37,8 +37,7 @@ export default function DataExplorerView({
   scopeOptions,
   contentTypeOptions,
 }: Props) {
-  // Local UI state for the selected year / split / value type
-  // splitBy נשמר רק לטובת ממשק המשתמש, המדד היחיד הוא נשים
+  // State for the selected filters and loaded data
   const [splitBy, setSplitBy] = useState<string>(
     splitOptions[0]?.value ?? "top_women"
   );
