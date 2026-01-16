@@ -49,7 +49,7 @@ export default function FilterDropdownMenu({
 
   return (
     
-    <div dir="rtl" className="flex flex-col gap-1 w-[210px]">
+    <div dir="rtl" className="flex flex-col gap-1 w-full sm:w-[210px]">
 
       {/* Label קטן */}
       <span className="text-xs font-medium text-sky-600 text-right">

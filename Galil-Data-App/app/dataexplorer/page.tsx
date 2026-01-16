@@ -14,7 +14,7 @@ export default function DataExplorerPage() {
         חקר נתונים - אשכול גליל מזרחי
       </h1>
 
-      <div className="mx-auto max-w-[85%] flex justify-center">
+      <div className="w-full px-4 lg:px-0 mx-auto lg:max-w-[85%] flex justify-center">
         <DataExplorerView
           splitOptions={splitOptions}
           statusOptions={statusOptions.map((o) => ({

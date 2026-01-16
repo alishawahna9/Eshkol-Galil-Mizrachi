@@ -92,7 +92,7 @@ export default function Chatbot() {
       {/* Header - Negative margin and p-0 on parent fixed the 'lip' */}
       <Card
         className={`
-          absolute bottom-0 left-0 w-[80vw] sm:w-150 h-[80vh] flex flex-col shadow-2xl border-none bg-background p-0 overflow-hidden
+          absolute bottom-0 left-0 w-[90vw] sm:w-[70vw] lg:w-150 h-[80vh] flex flex-col shadow-2xl border-none bg-background p-0 overflow-hidden
           transition-all duration-200 ease-in-out origin-bottom-left
           ${
             open

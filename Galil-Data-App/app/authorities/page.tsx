@@ -24,7 +24,7 @@ export default function AuthoritiesPage() {
     <h1 className="text-3xl font-bold text-center mb-8 mt-5">
        תחקור רשויות  - אשקול גליל מזרחי
     </h1>
-      <div dir="rtl" className="grid grid-cols-[420px_1fr] items-start gap-4 px-4">
+      <div dir="rtl" className="grid grid-cols-1 gap-4 lg:grid-cols-[420px_1fr] items-start px-4">
         <aside>
           <SideFilterPanel onFiltersChange={setFilters} />
         </aside>

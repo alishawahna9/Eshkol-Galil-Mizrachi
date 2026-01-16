@@ -34,7 +34,7 @@ export default function Navbar() {
         </Link>
 
         {/* Center: Navigation */}
-        <div className="flex items-center gap-10 text-2xl">
+        <div className="flex items-center gap-4 sm:gap-10 text-lg sm:text-2xl">
           <NavLink href="/authorities" active={pathname === "/authorities"}>
             תחקור רשויות
           </NavLink>
