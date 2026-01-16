@@ -6,6 +6,7 @@ import { SideFilterPanel } from "@/components/authorities/SideFilterPanel";
 import AuthoritiesFiltersBar from "@/components/authorities/AuthoritiesFiltersBar";
 import AuthorityTabs from "../../components/authorities/AuthorityTabs";
 import AuthoritiesResults from "@/components/authorities/AuthoritiesResults"; // הייבוא החדש
+import { Main } from "next/document";
 
 export default function AuthoritiesPage() {
   // מחקנו את ה-tableData הישן כי הטבלה החדשה שולפת מידע בעצמה
@@ -17,25 +18,32 @@ export default function AuthoritiesPage() {
   const valueType = sp.get("valueType") ?? undefined;
 
   return (
+  <main dir="rtl" className="px-6 py-4">
     <div className="mt-6">
-      <div dir="rtl" className="grid grid-cols-[420px_1fr] gap-4 px-4">
+    {/* Page title */}
+    <h1 className="text-3xl font-bold text-center mb-8 mt-5">
+       תחקור רשויות  - אשקול גליל מזרחי
+    </h1>
+      <div dir="rtl" className="grid grid-cols-[420px_1fr] items-start gap-4 px-4">
         <aside>
           <SideFilterPanel onFiltersChange={setFilters} />
         </aside>
 
         <main>
-          <div className="w-full pt-6 ">
+        
+          <div className="w-full">
 
-            <div className="mt-6 max-w-275">
+            <div className="max-w-275">
 
               {/* לשונית/גרפים */}
-              <div className="mt-6">
+              <div>
                 <AuthorityTabs tableComponent={<AuthoritiesResults filters={filters} selectedAuthority={selectedAuthority} />} onSelectAuthority={setSelectedAuthority} selectedAuthority={selectedAuthority} />
               </div>
             </div>
           </div>
-        </main>
+          </main>
       </div>
     </div>
-  );
+  </main>
+  ); 
 }
