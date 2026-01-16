@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import { X } from "lucide-react";
 
 // Dynamically import AuthoritiesMap to avoid SSR issues with Leaflet
 const AuthoritiesMap = dynamic(() => import("@/components/authorities/AuthoritiesMap"), { 
@@ -14,7 +15,7 @@ type PopRow = { authority: string; year: number; value: number };
 
 export default function MapTab({ tableComponent, onSelectAuthority, selectedAuthority, filters }: { tableComponent?: React.ReactNode; onSelectAuthority?: (name: string | null) => void; selectedAuthority?: string | null; filters?: { search?: string; metric?: string; year?: string; valueType?: string; ageGroup?: string; gender?: string } }) {
   const sp = useSearchParams();
-
+  const [availableAuthorities, setAvailableAuthorities] = useState<string[]>([]);
 
   const year = useMemo(() => {
     // Use filter year if available, otherwise fallback to URL param or 2023
@@ -28,14 +29,31 @@ export default function MapTab({ tableComponent, onSelectAuthority, selectedAuth
     return Number.isFinite(y) ? y : 2023;
   }, [sp, filters?.year]);
 
-   useEffect(() => {
+  useEffect(() => {
     // Reset selection when year changes
     onSelectAuthority?.(null);
   }, [year, onSelectAuthority]);
 
-  // Note: population fetching was removed because the new table component handles its own data
-  // The Map now receives selection from parent (page) and notifies via onSelectAuthority
-  
+  // Fetch available authorities based on current filters
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (filters?.search) params.set("search", filters.search);
+    if (filters?.metric) params.set("metric", filters.metric);
+    if (filters?.year) params.set("year", filters.year);
+    if (filters?.ageGroup) params.set("ageGroup", filters.ageGroup);
+    if (filters?.gender) params.set("gender", filters.gender);
+
+    fetch(`/api/authorities?${params.toString()}`)
+      .then((res) => res.json())
+      .then((data: any[]) => {
+        const names = data.map((item) => item.name);
+        setAvailableAuthorities(names);
+      })
+      .catch((e) => {
+        console.error("Failed to fetch authorities for map", e);
+        setAvailableAuthorities([]);
+      });
+  }, [filters?.search, filters?.metric, filters?.year, filters?.ageGroup, filters?.gender]);
 
   return (
     <div className="w-full h-full" dir="rtl">
@@ -44,9 +62,18 @@ export default function MapTab({ tableComponent, onSelectAuthority, selectedAuth
         <div className="rounded-xl bg-background p-3 overflow-auto">
           {/* Show current selection and allow clearing it */}
           {selectedAuthority ? (
-            <div className="flex items-center justify-between mb-2">
-              <div className="mb-2 font-semibold text-sm">מוגבל ל: {selectedAuthority}</div>
-              <button onClick={() => onSelectAuthority?.(null)} className="text-sm text-muted-foreground underline">נקה בחירה</button>
+            <div className="mb-4 flex items-center gap-3 bg-white rounded-xl px-4 py-3 shadow-md border border-gray-200">
+              <span className="text-sm font-semibold text-gray-800 flex-1">
+                📌 {selectedAuthority}
+              </span>
+              <button
+                onClick={() => onSelectAuthority?.(null)}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
+                aria-label="נקה סינון"
+              >
+                <X className="w-4 h-4" />
+                <span>נקה</span>
+              </button>
             </div>
           ) : null}
 
@@ -64,8 +91,10 @@ export default function MapTab({ tableComponent, onSelectAuthority, selectedAuth
         {/* Map */}
         <div className="rounded-xl overflow-hidden border">
           <AuthoritiesMap
+            key={selectedAuthority}
             selectedAuthority={selectedAuthority}
             onSelectAuthority={(name) => onSelectAuthority?.(name)}
+            availableAuthorities={availableAuthorities}
           />
         </div>
       </div>
