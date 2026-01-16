@@ -18,7 +18,7 @@ export default function MapTabPanel({
 }: Props) {
   return (
     <div>
-      <div className="h-145 w-full">
+      <div className="h-123 w-full">
         <MapTab
           tableComponent={tableComponent}
           onSelectAuthority={onSelectAuthority}

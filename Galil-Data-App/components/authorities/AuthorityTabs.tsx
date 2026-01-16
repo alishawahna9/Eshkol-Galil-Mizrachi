@@ -20,7 +20,7 @@ export default function AuthorityTabs({ tableComponent, onSelectAuthority, selec
 
   return (
     <div dir="rtl">
-      <div className="mt-6">
+      <div>
         {/* ✅ MAP TAB */}
         {active === "map" && (
           <MapTabPanel
@@ -44,7 +44,7 @@ export default function AuthorityTabs({ tableComponent, onSelectAuthority, selec
       </div>
 
       {/* ✅ NAVIGATION BUTTONS */}
-      <div className="mt-10 flex justify-center items-center gap-6 sm:gap-7 md:gap-8 flex-wrap">
+      <div className="mt-6 flex justify-center items-center gap-6 sm:gap-7 md:gap-8 flex-wrap">
         <button
           onClick={() => setActive("map")}
           className={`w-45 py-3.5 rounded-full text-base font-semibold shadow-sm ${

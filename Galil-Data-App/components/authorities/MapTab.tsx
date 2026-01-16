@@ -57,12 +57,12 @@ export default function MapTab({ tableComponent, onSelectAuthority, selectedAuth
 
   return (
     <div className="w-full h-full" dir="rtl">
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[520px_1fr] h-117.5">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[520px_1fr] h-123">
         {/* Table */}
-        <div className="rounded-xl bg-background p-3 overflow-auto">
+        <div className="rounded-xl bg-background p-3 flex flex-col h-full overflow-hidden">
           {/* Show current selection and allow clearing it */}
           {selectedAuthority ? (
-            <div className="mb-4 flex items-center gap-3 bg-white rounded-xl px-4 py-3 shadow-md border border-gray-200">
+            <div className="mb-4 flex items-center gap-3 bg-white rounded-xl px-4 py-3 shadow-md border border-gray-200 flex-none">
               <span className="text-sm font-semibold text-gray-800 flex-1">
                 📌 {selectedAuthority}
               </span>
@@ -79,7 +79,7 @@ export default function MapTab({ tableComponent, onSelectAuthority, selectedAuth
 
           {/* Render injected table component (from page) or show a fallback */}
           {tableComponent ? (
-            <div className="h-full">{tableComponent}</div>
+            <div className="flex-1 min-h-0">{tableComponent}</div>
           ) : (
             <div>
               <div className="mb-2 font-semibold text-sm">אוכלוסייה בשנת {year} — כל הרשויות</div>

@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, SlidersHorizontal, Users } from "lucide-react";
+import { Search, SlidersHorizontal, Users, RotateCcw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // הגדרת המדדים: Key = שם השדה בטבלה, Label = מה רואה המשתמש
@@ -60,7 +60,7 @@ export function SideFilterPanel({ onFiltersChange }: { onFiltersChange?: (f: Fil
 
   const [search, setSearch] = useState<string>("");
   const [metricKey, setMetricKey] = useState<string>(METRICS[0].key);
-  const [year, setYear] = useState<string>(searchParams.get("year") ?? "2023");
+  const [year, setYear] = useState<string>(searchParams.get("year") ?? "none");
   const [ageGroup, setAgeGroup] = useState<string>(searchParams.get("ageGroup") ?? "none");
   const [gender, setGender] = useState<string>(searchParams.get("gender") ?? "none");
   const valueType = "number";
@@ -83,6 +83,15 @@ export function SideFilterPanel({ onFiltersChange }: { onFiltersChange?: (f: Fil
     });
   }
 
+  function clearAll() {
+    setSearch("");
+    setMetricKey(METRICS[0].key);
+    setYear("none");
+    setAgeGroup("none");
+    setGender("none");
+    router.replace(window.location.pathname, { scroll: false });
+  }
+
   // Notify parent on change with a short debounce
   useEffect(() => {
     const id = setTimeout(() => {
@@ -99,9 +108,9 @@ export function SideFilterPanel({ onFiltersChange }: { onFiltersChange?: (f: Fil
   }, [search, metricKey, year, ageGroup, gender, valueType, onFiltersChange]);
 
   return (
-    <div className="p-6">
+    <div className="p-0">
       <Card
-        className="h-fit border border-slate-200 dark:border-slate-700 bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-800"
+        className="h-fit border border-slate-200 dark:border-slate-700 bg-card"
         dir="rtl"
       >
         <CardHeader>
@@ -132,6 +141,19 @@ export function SideFilterPanel({ onFiltersChange }: { onFiltersChange?: (f: Fil
               >
                 <Users className="w-4 h-4 ml-2" />
                 אוכלוסיה
+              </Button>
+            </div>
+
+            <div className="w-full px-1 mt-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="w-full justify-center rounded-full py-2.5 text-base font-semibold shadow-sm transition-all border border-slate-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 dark:border-slate-700 dark:hover:bg-blue-900/20 dark:hover:text-blue-400 text-slate-600 dark:text-slate-300"
+                onClick={clearAll}
+              >
+                <RotateCcw className="w-4 h-4 ml-2" />
+                נקה סינונים
               </Button>
             </div>
           </div>
