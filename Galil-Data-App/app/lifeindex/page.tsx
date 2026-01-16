@@ -14,7 +14,7 @@ export default function LifeIndexPage() {
   return (
     <>
       {/* 1. Changed 'container' to 'max-w-[1600px]' or 'w-full px-4' for more width */}
-      <div dir="rtl" className="max-w-360 mx-auto py-10 px-8 text-right">
+      <div dir="rtl" className="max-w-360 mx-auto py-6 sm:py-10 px-4 sm:px-6 lg:px-8 text-right">
         {" "}
         <h1 className="text-3xl font-bold text-center mb-8">מדד איכות חיים - אשכול גליל מזרחי</h1>
         <Tabs defaultValue="current" className="w-full">

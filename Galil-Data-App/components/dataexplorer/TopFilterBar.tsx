@@ -13,7 +13,7 @@ const triggerClass = cn(
 
 function FilterField({ label }: { label: string }) {
   return (
-    <div className="grid grid-cols-[auto_minmax(160px,1fr)] items-center gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-[auto_minmax(160px,1fr)] items-center gap-2 sm:gap-4">
       <span className="text-sm text-muted-foreground whitespace-nowrap">
         {label}
       </span>
@@ -69,7 +69,7 @@ export default function TopFilterBar() {
             </div>
 
             {/* פילטרים: Grid כדי שלא יגלשו החוצה */}
-            <div className="mt-4 grid items-center gap-4 lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr]">
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] items-center gap-2 sm:gap-4 lg:gap-4">
               <FilterField label="מגדר" />
               <div className="hidden lg:block h-10 w-px bg-blue-200" />
 
