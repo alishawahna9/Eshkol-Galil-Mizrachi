@@ -101,13 +101,13 @@ export function SideFilterPanel({ onFiltersChange }: { onFiltersChange?: (f: Fil
   return (
     <div className="p-6">
       <Card
-        className="h-fit border border-slate-200 bg-gradient-to-b from-slate-50 to-white"
+        className="h-fit border border-slate-200 dark:border-slate-700 bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-800"
         dir="rtl"
       >
         <CardHeader>
           <div className="flex flex-col items-center gap-4 w-full mb-2">
-            <div className="w-full text-center border-b border-slate-100 pb-3">
-              <CardTitle className="text-2xl font-extrabold text-slate-800 tracking-tight">
+            <div className="w-full text-center border-b border-slate-100 dark:border-slate-700 pb-3">
+              <CardTitle className="text-2xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
                 סינון ופילטרים
               </CardTitle>
             </div>
@@ -117,7 +117,7 @@ export function SideFilterPanel({ onFiltersChange }: { onFiltersChange?: (f: Fil
                 type="button"
                 variant={view === "filters" ? "default" : "outline"}
                 size="lg"
-                className="w-full justify-center rounded-full py-2.5 text-base font-semibold shadow-sm"
+                className="w-full justify-center rounded-full py-2.5 text-base font-semibold shadow-sm transition-all border border-transparent hover:border-slate-300 dark:hover:border-slate-600 data-[state=active]:shadow-lg"
                 onClick={() => setView("filters")}
               >
                 <SlidersHorizontal className="w-4 h-4 ml-2" />
@@ -127,7 +127,7 @@ export function SideFilterPanel({ onFiltersChange }: { onFiltersChange?: (f: Fil
                 type="button"
                 variant={view === "population" ? "default" : "outline"}
                 size="lg"
-                className="w-full justify-center rounded-full py-2.5 text-base font-semibold shadow-sm"
+                className="w-full justify-center rounded-full py-2.5 text-base font-semibold shadow-sm transition-all border border-transparent hover:border-slate-300 dark:hover:border-slate-600 data-[state=active]:shadow-lg"
                 onClick={() => setView("population")}
               >
                 <Users className="w-4 h-4 ml-2" />
@@ -143,7 +143,7 @@ export function SideFilterPanel({ onFiltersChange }: { onFiltersChange?: (f: Fil
           ) : (
             <>
               <div className="space-y-2">
-                <label className="text-sm font-medium">חיפוש רשות</label>
+                <label className="text-sm font-medium dark:text-slate-300">חיפוש רשות</label>
                 <Input
                   value={search}
                   onChange={(e) => setSearch((e.target as HTMLInputElement).value)}
@@ -156,31 +156,41 @@ export function SideFilterPanel({ onFiltersChange }: { onFiltersChange?: (f: Fil
                 <TabsList className="grid grid-cols-3 gap-2 mb-5 bg-transparent p-0">
                   <TabsTrigger
                     value="years"
-                    className="rounded-full text-base px-4 py-2.5 transition-colors data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                    className="rounded-full text-base px-4 py-2.5 transition-all text-slate-500 dark:text-slate-400 border border-transparent hover:border-slate-300 dark:hover:border-slate-600 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:border-blue-600 data-[state=active]:shadow-lg"
                   >
                     שנים
                   </TabsTrigger>
                   <TabsTrigger
                     value="population"
-                    className="rounded-full text-base px-4 py-2.5 transition-colors data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                    className="rounded-full text-base px-4 py-2.5 transition-all text-slate-500 dark:text-slate-400 border border-transparent hover:border-slate-300 dark:hover:border-slate-600 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:border-blue-600 data-[state=active]:shadow-lg"
                   >
                     אוכלוסייה
                   </TabsTrigger>
                   <TabsTrigger
                     value="group"
-                    className="rounded-full text-base px-4 py-2.5 transition-colors data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                    className="rounded-full text-base px-4 py-2.5 transition-all text-slate-500 dark:text-slate-400 border border-transparent hover:border-slate-300 dark:hover:border-slate-600 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:border-blue-600 data-[state=active]:shadow-lg"
                   >
                     גיל ומין
                   </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="years" className="space-y-3">
-                  <div className="text-sm font-semibold">סינון לפי שנים</div>
+                  <div className="text-sm font-semibold dark:text-slate-200">סינון לפי שנים</div>
                   <Select
                     value={year}
                     onValueChange={(v) => {
                       setYear(v);
-                      updateQueryParam("year", v);
+                      // כאשר משנים שנה, בטל סינונים של אוכלוסיה/גיל/מין
+                      if (v !== "none") {
+                        setAgeGroup("none");
+                        setGender("none");
+                        setMetricKey(METRICS[0].key);
+                        updateQueryParam("year", v);
+                        updateQueryParam("ageGroup", "");
+                        updateQueryParam("gender", "");
+                      } else {
+                        updateQueryParam("year", "");
+                      }
                     }}
                   >
                     <SelectTrigger className="w-full justify-between text-right h-11 text-base">
@@ -200,16 +210,21 @@ export function SideFilterPanel({ onFiltersChange }: { onFiltersChange?: (f: Fil
                 </TabsContent>
 
                 <TabsContent value="population" className="space-y-3">
-                  <div className="text-sm font-semibold">סינון לפי אוכלוסיה</div>
+                  <div className="text-sm font-semibold dark:text-slate-200">סינון לפי אוכלוסיה</div>
                   <div className="space-y-2 text-sm">
                     {METRICS.map((metric) => (
-                      <label key={metric.key} className="flex items-center gap-2 cursor-pointer">
+                      <label key={metric.key} className="flex items-center gap-2 cursor-pointer dark:text-slate-300">
                         <input
                           type="radio"
                           name="metric"
                           value={metric.key}
                           checked={metricKey === metric.key}
-                          onChange={() => setMetricKey(metric.key)}
+                          onChange={() => {
+                            setMetricKey(metric.key);
+                            // כאשר משנים אוכלוסיה, בטל סינון שנה (אבל לא גיל או מגדר)
+                            setYear("none");
+                            updateQueryParam("year", "");
+                          }}
                         />
                         <span>{metric.label}</span>
                       </label>
@@ -218,13 +233,20 @@ export function SideFilterPanel({ onFiltersChange }: { onFiltersChange?: (f: Fil
                 </TabsContent>
 
                 <TabsContent value="group" className="space-y-3">
-                  <div className="text-sm font-semibold">סינון לפי קבוצה</div>
+                  <div className="text-sm font-semibold dark:text-slate-200">סינון לפי קבוצה</div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <Select
                       value={ageGroup}
                       onValueChange={(v) => {
                         setAgeGroup(v);
-                        updateQueryParam("ageGroup", v);
+                        // כאשר משנים גיל, בטל סינון שנה (אבל לא מינים או אוכלוסיה)
+                        if (v !== "none") {
+                          setYear("none");
+                          updateQueryParam("ageGroup", v);
+                          updateQueryParam("year", "");
+                        } else {
+                          updateQueryParam("ageGroup", "");
+                        }
                       }}
                     >
                       <SelectTrigger className="w-full justify-between text-right h-11 text-base">
@@ -246,7 +268,14 @@ export function SideFilterPanel({ onFiltersChange }: { onFiltersChange?: (f: Fil
                       value={gender}
                       onValueChange={(v) => {
                         setGender(v);
-                        updateQueryParam("gender", v);
+                        // כאשר משנים מגדר, בטל סינון שנה (אבל לא גיל או אוכלוסיה)
+                        if (v !== "none") {
+                          setYear("none");
+                          updateQueryParam("gender", v);
+                          updateQueryParam("year", "");
+                        } else {
+                          updateQueryParam("gender", "");
+                        }
                       }}
                     >
                       <SelectTrigger className="w-full justify-between text-right h-11 text-base">

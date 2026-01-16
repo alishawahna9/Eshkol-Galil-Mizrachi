@@ -75,10 +75,11 @@ function FitBoundsToMarkers({ coordsList }: { coordsList: [number, number][] }) 
 
 type Props = {
   selectedAuthority?: string | null;
-  onSelectAuthority?: (name: string) => void; 
+  onSelectAuthority?: (name: string) => void;
+  availableAuthorities?: string[]; // רשימת הרשויות שבפועל מוצגות בטבלה
 };
 
-export default function AuthoritiesMap({ selectedAuthority, onSelectAuthority }: Props) {
+export default function AuthoritiesMap({ selectedAuthority, onSelectAuthority, availableAuthorities }: Props) {
   const [ready, setReady] = useState(false);
   const { resolvedTheme } = useTheme();
 
@@ -105,7 +106,12 @@ export default function AuthoritiesMap({ selectedAuthority, onSelectAuthority }:
 
   if (!ready) return null;
 
-  const coordsList = Object.values(AUTHORITY_COORDS);
+  // סנן את הקואורדינטות רק לרשויות שמוצגות בטבלה
+  const filteredCoords = availableAuthorities
+    ? Object.entries(AUTHORITY_COORDS).filter(([name]) => availableAuthorities.includes(name))
+    : Object.entries(AUTHORITY_COORDS);
+  
+  const coordsList = filteredCoords.map(([, coords]) => coords);
 
   return (
     <div className="relative w-full h-full overflow-hidden rounded-xl z-0">
@@ -125,7 +131,7 @@ export default function AuthoritiesMap({ selectedAuthority, onSelectAuthority }:
         <FitBoundsToMarkers coordsList={coordsList} />
         <FlyToAuthority name={selectedAuthority} />
 
-        {Object.entries(AUTHORITY_COORDS).map(([name, coords]) => (
+        {filteredCoords.map(([name, coords]) => (
           <CircleMarker
             key={name}
             center={coords}
@@ -136,7 +142,7 @@ export default function AuthoritiesMap({ selectedAuthority, onSelectAuthority }:
               fillOpacity: 0.9,
             }}
             eventHandlers={{
-              click: () => onSelectAuthority?.(name), // ✅ חדש
+              click: () => onSelectAuthority?.(name),
             }}
           >
             <Popup className="bg-card text-foreground border-border">{name}</Popup>
@@ -145,7 +151,7 @@ export default function AuthoritiesMap({ selectedAuthority, onSelectAuthority }:
       </MapContainer>
 
       <div className="absolute top-3 right-3 z-40 rounded-md bg-card/80 border border-border px-2 py-1 text-xs text-muted-foreground">
-        מיקומים: {coordsList.length}
+        מיקומים: {filteredCoords.length}
       </div>
     </div>
   );

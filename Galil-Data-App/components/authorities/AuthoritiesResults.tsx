@@ -60,10 +60,10 @@ export default function AuthoritiesResults({ filters, selectedAuthority }: { fil
         setData([]);
       })
       .finally(() => setLoading(false));
-  }, [filters?.search, filters?.domain, filters?.metric, filters?.year, filters?.valueType, filters?.ageGroup, filters?.gender, selectedAuthority]);
+  }, [filters?.search, filters?.metric, filters?.year, filters?.valueType, filters?.ageGroup, filters?.gender, selectedAuthority]);
 
   return (
-    <div className="rounded-xl border bg-white p-2 shadow-sm h-full min-h-0 overflow-hidden text-foreground flex flex-col">
+    <div className="rounded-xl border bg-card p-2 shadow-sm h-full min-h-0 overflow-hidden text-foreground flex flex-col">
       {/* Header outside ScrollArea so it stays fixed */}
       <table dir="rtl" className="table-fixed min-w-full">
         <colgroup>
@@ -71,7 +71,7 @@ export default function AuthoritiesResults({ filters, selectedAuthority }: { fil
           <col style={{ width: '30%' }} />
         </colgroup>
         <thead>
-          <tr className="border-b border-border bg-white">
+          <tr className="border-b border-border bg-card">
             <th className="text-right font-semibold whitespace-normal p-2">שם הרשות</th>
             {filters?.metric === "arabs" ? (
               <th className="text-right font-semibold whitespace-normal p-2">ערבים</th>
@@ -86,7 +86,7 @@ export default function AuthoritiesResults({ filters, selectedAuthority }: { fil
 
       {/* Scrollable content */}
       <div className="h-full min-h-0 overflow-auto flex-1">
-        <ScrollArea className="h-full rounded-[inherit] bg-white">
+        <ScrollArea className="h-full rounded-[inherit] bg-card">
           <Table dir="rtl" className="table-fixed min-w-full">
             {/* Show one column for metric */}
             <colgroup>
@@ -99,11 +99,11 @@ export default function AuthoritiesResults({ filters, selectedAuthority }: { fil
               <TableRow className="border-b border-border" style={{display: 'none'}}>
                 <TableHead className="text-right font-semibold whitespace-normal">שם הרשות</TableHead>
                 {filters?.metric === "arabs" ? (
-                  <TableHead className="text-right font-semibold sticky top-0 bg-white/95 backdrop-blur-sm z-20 whitespace-normal">ערבים</TableHead>
+                  <TableHead className="text-right font-semibold sticky top-0 bg-card/95 backdrop-blur-sm z-20 whitespace-normal">ערבים</TableHead>
                 ) : filters?.metric === "muslims" ? (
-                  <TableHead className="text-right font-semibold sticky top-0 bg-white/95 backdrop-blur-sm z-20 whitespace-normal">מוסלמים</TableHead>
+                  <TableHead className="text-right font-semibold sticky top-0 bg-card/95 backdrop-blur-sm z-20 whitespace-normal">מוסלמים</TableHead>
                 ) : (
-                  <TableHead className="text-right font-semibold sticky top-0 bg-white/95 backdrop-blur-sm z-20 whitespace-normal">{metricLabel}</TableHead>
+                  <TableHead className="text-right font-semibold sticky top-0 bg-card/95 backdrop-blur-sm z-20 whitespace-normal">{metricLabel}</TableHead>
                 )}
               </TableRow>
             </TableHeader>
@@ -123,7 +123,7 @@ export default function AuthoritiesResults({ filters, selectedAuthority }: { fil
                 </TableRow>
               ) : data.length > 0 ? (
                 data.map((item) => (
-                  <TableRow key={item.name} className={selectedAuthority && item.name === selectedAuthority ? "bg-sky-50" : ""}>
+                  <TableRow key={item.name} className={selectedAuthority && item.name === selectedAuthority ? "bg-blue-500/10 dark:bg-blue-500/20" : ""}>
                     <TableCell className="font-medium whitespace-normal">{item.name}</TableCell>
                     {filters?.metric === "arabs" ? (
                       <TableCell className="whitespace-normal">{(item.arabsCount ?? 0).toLocaleString()}</TableCell>

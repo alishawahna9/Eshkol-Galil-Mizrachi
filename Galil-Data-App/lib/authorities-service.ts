@@ -1,5 +1,6 @@
 // lib/authorities-service.ts
 import prisma from "@/lib/prisma";
+import { getAuthoritiesOfTheEasternGalilee } from "./cluster-authorities";
 
 export type AuthorityData = {
   name: string;
@@ -12,11 +13,18 @@ export type AuthorityData = {
 };
 
 export async function getAuthoritiesStats(filters?: { search?: string; domain?: string; metric?: string; municipalStatus?: string; year?: string; ageGroup?: string; gender?: string }): Promise<AuthorityData[]> {
-  // load general info (ensures authorities with no demographics are still present)
-  const general = await prisma.authorityGeneralInfo.findMany({ select: { symbol: true, name: true, municipalStatus: true } });
+  // Get cluster authority symbols
+  const clusterSymbols = await getAuthoritiesOfTheEasternGalilee();
+  
+  // load general info (only for cluster authorities)
+  const general = await prisma.authorityGeneralInfo.findMany({ 
+    where: { symbol: { in: clusterSymbols } },
+    select: { symbol: true, name: true, municipalStatus: true } 
+  });
 
-  // load demographics where available
+  // load demographics where available (only for cluster authorities)
   const demos = await prisma.authorityDemographics.findMany({ 
+    where: { symbol: { in: clusterSymbols } },
     select: { 
       symbol: true, 
       name: true, 
