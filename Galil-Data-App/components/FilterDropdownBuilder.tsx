@@ -37,13 +37,13 @@ export function FilterDropdownMenu({
   const searchParams = useSearchParams();
 
   // 🔑 מקור האמת – הערך מה-URL
-  const currentValue = searchParams.get(param) ?? "";
+  const currentValue = searchParams?.get(param) ?? "";
 
   const currentLabel =
     options.find((o) => o.value === currentValue)?.label ?? placeholder;
 
   function onValueChange(v: string) {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams?.toString() || "");
     params.set(param, v);
 
     // replace + בלי גלילה = UX יותר טוב

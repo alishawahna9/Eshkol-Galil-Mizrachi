@@ -24,7 +24,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
   // Define exactly which route is your "Welcome" page.
   // If it's the home page, it's usually "/"
   const isWelcomePage = pathname === "/";
-  const isAdminPage = pathname.startsWith("/admin");
+  const isAdminPage = pathname?.startsWith("/admin") ?? false;
 
   return (
     <html lang="he" dir="rtl" suppressHydrationWarning style={{colorScheme: "light"}}>

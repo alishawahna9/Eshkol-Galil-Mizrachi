@@ -24,7 +24,7 @@ export default function MapTab({ tableComponent, onSelectAuthority, selectedAuth
       const y = Number(filterYear);
       return Number.isFinite(y) ? y : 2023;
     }
-    const raw = sp.get("year") || "2023";
+    const raw = sp?.get("year") || "2023";
     const y = Number(raw);
     return Number.isFinite(y) ? y : 2023;
   }, [sp, filters?.year]);
