@@ -12,6 +12,7 @@ export default function AuthoritiesPage() {
   // מחקנו את ה-tableData הישן כי הטבלה החדשה שולפת מידע בעצמה
   const [filters, setFilters] = useState<{ search?: string; metric?: string; year?: string; valueType?: string; ageGroup?: string; gender?: string }>({ metric: "total_population", year: "2023" });
   const [selectedAuthority, setSelectedAuthority] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("map");
 
   const sp = useSearchParams();
   const year = sp.get("year") ?? undefined;
@@ -26,7 +27,7 @@ export default function AuthoritiesPage() {
     </h1>
       <div dir="rtl" className="grid grid-cols-1 gap-4 lg:grid-cols-[420px_1fr] items-start px-4">
         <aside>
-          <SideFilterPanel onFiltersChange={setFilters} />
+          <SideFilterPanel onFiltersChange={setFilters} activeTab={activeTab} />
         </aside>
 
         <main>
@@ -37,7 +38,7 @@ export default function AuthoritiesPage() {
 
               {/* לשונית/גרפים */}
               <div>
-                <AuthorityTabs tableComponent={<AuthoritiesResults filters={filters} selectedAuthority={selectedAuthority} />} onSelectAuthority={setSelectedAuthority} selectedAuthority={selectedAuthority} filters={filters} />
+                <AuthorityTabs tableComponent={<AuthoritiesResults filters={filters} selectedAuthority={selectedAuthority} />} onSelectAuthority={setSelectedAuthority} selectedAuthority={selectedAuthority} filters={filters} onActiveTabChange={setActiveTab} />
               </div>
             </div>
           </div>

@@ -12,11 +12,17 @@ type Props = {
   onSelectAuthority?: (name: string | null) => void;
   selectedAuthority?: string | null;
   filters?: { search?: string; metric?: string; year?: string; valueType?: string; ageGroup?: string; gender?: string };
+  onActiveTabChange?: (tab: string) => void;
 };
 
-export default function AuthorityTabs({ tableComponent, onSelectAuthority, selectedAuthority, filters }: Props) 
- {
+export default function AuthorityTabs({ tableComponent, onSelectAuthority, selectedAuthority, filters, onActiveTabChange }: Props)
+{
   const [active, setActive] = useState<string>("map");
+
+  const handleTabChange = (newTab: string) => {
+    setActive(newTab);
+    onActiveTabChange?.(newTab);
+  };
 
   return (
     <div dir="rtl">
@@ -46,7 +52,7 @@ export default function AuthorityTabs({ tableComponent, onSelectAuthority, selec
       {/* ✅ NAVIGATION BUTTONS */}
       <div className="mt-6 flex justify-center items-center gap-6 sm:gap-7 md:gap-8 flex-wrap">
         <button
-          onClick={() => setActive("map")}
+          onClick={() => handleTabChange("map")}
           className={`w-45 py-3.5 rounded-full text-base font-semibold shadow-sm ${
             active === "map"
               ? "bg-primary text-primary-foreground"
@@ -56,7 +62,7 @@ export default function AuthorityTabs({ tableComponent, onSelectAuthority, selec
           מפה
         </button>
         <button
-          onClick={() => setActive("chart")}
+          onClick={() => handleTabChange("chart")}
           className={`w-45 py-3.5 rounded-full text-base font-semibold shadow-sm ${
             active === "chart"
               ? "bg-primary text-primary-foreground"
@@ -66,7 +72,7 @@ export default function AuthorityTabs({ tableComponent, onSelectAuthority, selec
           גרף
         </button>
         <button
-          onClick={() => setActive("trend")}
+          onClick={() => handleTabChange("trend")}
           className={`w-45 py-3.5 rounded-full text-base font-semibold shadow-sm ${
             active === "trend"
               ? "bg-primary text-primary-foreground"
@@ -76,7 +82,7 @@ export default function AuthorityTabs({ tableComponent, onSelectAuthority, selec
           מגמה
         </button>
         <button
-          onClick={() => setActive("trendUnified")}
+          onClick={() => handleTabChange("trendUnified")}
           className={`w-45 py-3.5 rounded-full text-base font-semibold shadow-sm ${
             active === "trendUnified"
               ? "bg-primary text-primary-foreground"
