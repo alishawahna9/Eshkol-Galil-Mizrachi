@@ -26,10 +26,10 @@ model AuthorityGeneralInfo {
   planningCommitteeId   Int
   planningCommitteeName String
   area                  Float
-  embedding             Unsupported("vector(768)")?
+  // embedding             Unsupported("vector(768)")? // Temporarily disabled
 
-  demographics   AuthorityDemographics[]
-  populationData PopulationData[]
+  // demographics   AuthorityDemographics[] // Temporarily disabled
+  // populationData PopulationData[] // Temporarily disabled
 }
 
 model AuthorityDemographics {
@@ -58,10 +58,10 @@ model AuthorityDemographics {
   muslimsPercent       Float?
   christiansPercent    Float?
   druzePercent         Float?
-  embedding            Unsupported("vector(768)")?
+  // embedding            Unsupported("vector(768)")? // Temporarily disabled
 
   // --- חיבור לפי שם העיר ---
-  generalInfo AuthorityGeneralInfo @relation(fields: [name], references: [name])
+  // generalInfo AuthorityGeneralInfo @relation(fields: [name], references: [name]) // Temporarily disabled
 }
 
 model AuthorityPopulation {
@@ -79,10 +79,10 @@ model PopulationData {
   authority  String
   year       Int
   population Int
-  embedding  Unsupported("vector(768)")?
+  // embedding  Unsupported("vector(768)")? // Temporarily disabled
 
   // --- חיבור לפי שם העיר ---
-  generalInfo AuthorityGeneralInfo @relation(fields: [authority], references: [name])
+  // generalInfo AuthorityGeneralInfo @relation(fields: [authority], references: [name]) // Temporarily disabled
 
   @@unique([authority, year])
   @@map("population_data")

@@ -1,6 +1,7 @@
 // app/api/authorities/comparison/route.ts
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getAuthoritiesOfTheEasternGalilee } from "@/lib/cluster-authorities";
 
 export async function GET(request: Request) {
   try {
@@ -35,10 +36,21 @@ export async function GET(request: Request) {
     let transformed: Array<{ label: string; value: number }> = [];
 
     if (metric === "total_population") {
-      // Query PopulationData table for the specified year
+      // Get Eastern Galilee cluster authority symbols
+      const clusterSymbols = await getAuthoritiesOfTheEasternGalilee();
+
+      // Get authority names for these symbols
+      const clusterAuthorities = await prisma.authorityGeneralInfo.findMany({
+        where: { symbol: { in: clusterSymbols } },
+        select: { name: true }
+      });
+      const clusterNames = clusterAuthorities.map(a => a.name);
+
+      // Query PopulationData table for the specified year, only for cluster authorities
       const populationData = await prisma.populationData.findMany({
         where: {
           year: year,
+          authority: { in: clusterNames },
           ...(search ? { authority: { contains: search, mode: "insensitive" } } : {}),
         },
         orderBy: {
@@ -86,6 +98,9 @@ export async function GET(request: Request) {
         transformed = populationData.map((d) => ({ label: d.authority, value: d.population }));
       }
     } else {
+      // Get Eastern Galilee cluster authority symbols
+      const clusterSymbols = await getAuthoritiesOfTheEasternGalilee();
+
       // Map metric to demographics field
       const fieldMap: Record<string, keyof typeof prisma.authorityDemographics> = {
         jews_and_others: "jewsAndOthersPercent" as any,
@@ -103,6 +118,7 @@ export async function GET(request: Request) {
 
       const rows = await prisma.authorityDemographics.findMany({
         where: {
+          symbol: { in: clusterSymbols },
           ...(search ? { name: { contains: search, mode: "insensitive" } } : {}),
         },
         orderBy: {
