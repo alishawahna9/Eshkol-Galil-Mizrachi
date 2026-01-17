@@ -1,22 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { SideFilterPanel } from "@/components/authorities/SideFilterPanel";
 import AuthoritiesFiltersBar from "@/components/authorities/AuthoritiesFiltersBar";
 import AuthorityTabs from "../../components/authorities/AuthorityTabs";
-import AuthoritiesResults from "@/components/authorities/AuthoritiesResults"; // הייבוא החדש
-import { Main } from "next/document";
+import AuthoritiesResults from "@/components/authorities/AuthoritiesResults";
 
-export default function AuthoritiesPage() {
+function AuthoritiesPageContent() {
   // מחקנו את ה-tableData הישן כי הטבלה החדשה שולפת מידע בעצמה
   const [filters, setFilters] = useState<{ search?: string; metric?: string; year?: string; valueType?: string; ageGroup?: string; gender?: string }>({ metric: "total_population", year: "2023" });
   const [selectedAuthority, setSelectedAuthority] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("map");
 
   const sp = useSearchParams();
-  const year = sp.get("year") ?? undefined;
-  const valueType = sp.get("valueType") ?? undefined;
+  const year = sp?.get("year") ?? undefined;
+  const valueType = sp?.get("valueType") ?? undefined;
 
   return (
   <main dir="rtl" className="px-6 py-4">
@@ -46,5 +45,13 @@ export default function AuthoritiesPage() {
       </div>
     </div>
   </main>
-  ); 
+  );
+}
+
+export default function AuthoritiesPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">טוען...</div>}>
+      <AuthoritiesPageContent />
+    </Suspense>
+  );
 }

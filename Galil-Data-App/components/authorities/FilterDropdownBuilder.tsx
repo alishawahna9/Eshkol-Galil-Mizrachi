@@ -42,7 +42,7 @@ export default function FilterDropdownMenu({
     options.find((o) => o.value === value)?.label ?? placeholder;
 
   function onValueChange(v: string) {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams?.toString() || "");
     params.set(param, v);
     router.push(`?${params.toString()}`);
   }
