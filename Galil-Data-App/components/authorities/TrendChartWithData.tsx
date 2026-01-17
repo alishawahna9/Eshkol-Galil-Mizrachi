@@ -9,13 +9,14 @@ type Series = { name: string; points: Point[] };
 
 type Props = {
   selectedAuthority?: string | null;
-  filters?: { domain?: string; search?: string; metric?: string; year?: string; valueType?: string };
+  filters?: { domain?: string; search?: string; metric?: string; year?: string; valueType?: string; ageGroup?: string; gender?: string };
 };
 
 export default function TrendChartWithData({ selectedAuthority, filters }: Props) {
   const searchParams = useSearchParams();
   const valueType = (filters?.valueType ?? searchParams?.get("valueType") ?? "number") as "number" | "percent";
   const metric = filters?.metric ?? searchParams?.get("metric") ?? "total_population";
+  const year = filters?.year ?? searchParams?.get("year");
 
   const [series, setSeries] = useState<Series[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,12 +60,22 @@ export default function TrendChartWithData({ selectedAuthority, filters }: Props
         const data = await response.json();
 
         if (Array.isArray(data)) {
+          let processedData = data;
+
+          // Filter by specific year if one is selected
+          if (year && year !== "none") {
+            processedData = data.map((s: Series) => ({
+              ...s,
+              points: s.points.filter((p) => String(p.x) === year),
+            })).filter((s) => s.points.length > 0); // Remove series with no points for the selected year
+          }
+
           // If valueType is percent, convert values to percentages
-          if (valueType === "percent" && data.length > 0) {
+          if (valueType === "percent" && processedData.length > 0) {
             // Calculate total for each year across all series
             const yearTotals = new Map<number, number>();
 
-            data.forEach((s: Series) => {
+            processedData.forEach((s: Series) => {
               s.points.forEach((p) => {
                 const year = typeof p.x === "string" ? parseInt(p.x, 10) : p.x;
                 const current = yearTotals.get(year) || 0;
@@ -73,7 +84,7 @@ export default function TrendChartWithData({ selectedAuthority, filters }: Props
             });
 
             // Convert to percentages
-            const convertedData = data.map((s: Series) => ({
+            const convertedData = processedData.map((s: Series) => ({
               ...s,
               points: s.points.map((p) => {
                 const year = typeof p.x === "string" ? parseInt(p.x, 10) : p.x;
@@ -87,7 +98,7 @@ export default function TrendChartWithData({ selectedAuthority, filters }: Props
 
             setSeries(convertedData);
           } else {
-            setSeries(data);
+            setSeries(processedData);
           }
         } else {
           setSeries([]);
@@ -101,7 +112,7 @@ export default function TrendChartWithData({ selectedAuthority, filters }: Props
     };
 
     fetchData();
-  }, [selectedAuthority, valueType, metric, filters?.domain, filters?.search]);
+  }, [selectedAuthority, valueType, metric, filters?.domain, filters?.search, year]);
 
   if (metric !== "total_population") {
     return (
@@ -113,7 +124,8 @@ export default function TrendChartWithData({ selectedAuthority, filters }: Props
 
   const yLabel = valueType === "percent" ? "אחוז" : "אנשים";
   const valueUnit = valueType === "percent" ? "אחוזים" : "אנשים";
-  const title = `מגמת הרשויות שנבחרו במדד אוכלוסיה (${valueUnit}) בשנים 2003 - 2023`;
+  const yearRange = (year && year !== "none") ? `שנת ${year}` : "שנים 2003 - 2023";
+  const title = `מגמת הרשויות שנבחרו במדד אוכלוסיה (${valueUnit}) ב${yearRange}`;
 
   if (loading) {
     return (

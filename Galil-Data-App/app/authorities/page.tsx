@@ -37,7 +37,7 @@ export default function AuthoritiesPage() {
 
               {/* לשונית/גרפים */}
               <div>
-                <AuthorityTabs tableComponent={<AuthoritiesResults filters={filters} selectedAuthority={selectedAuthority} />} onSelectAuthority={setSelectedAuthority} selectedAuthority={selectedAuthority} />
+                <AuthorityTabs tableComponent={<AuthoritiesResults filters={filters} selectedAuthority={selectedAuthority} />} onSelectAuthority={setSelectedAuthority} selectedAuthority={selectedAuthority} filters={filters} />
               </div>
             </div>
           </div>
