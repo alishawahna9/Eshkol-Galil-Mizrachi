@@ -26,10 +26,12 @@ const METRIC_LABELS: Record<string, string> = {
   muslims: "אוכלוסיה – מוסלמים",
 };
 
-export default function ComparisonChart({ filters }: { filters?: { domain?: string; search?: string; metric?: string; year?: string; valueType?: string } }) {
+export default function ComparisonChart({ filters }: { filters?: { domain?: string; search?: string; metric?: string; year?: string; valueType?: string; ageGroup?: string; gender?: string } }) {
   const searchParams = useSearchParams();
   const yearParam = filters?.year ?? searchParams?.get("year");
-  const year = yearParam ? parseInt(yearParam, 10) : 2023;
+  const year = (yearParam && yearParam !== "none" && !isNaN(parseInt(yearParam, 10)))
+    ? parseInt(yearParam, 10)
+    : 2023;
   const valueType = (filters?.valueType || searchParams?.get("valueType") || "number") as "number" | "percent";
   const metric = filters?.metric || searchParams?.get("metric") || "total_population";
   
@@ -111,7 +113,20 @@ export default function ComparisonChart({ filters }: { filters?: { domain?: stri
   const yLabel = valueType === "percent" ? "אחוז" : "אנשים";
   const valueUnit = valueType === "percent" ? "אחוזים" : "אנשים";
   const metricLabel = METRIC_LABELS[metric] || "מדד";
-  const title = `השוואת הרשויות במדד ${metricLabel} (${valueUnit}) בשנת ${year}`;
+
+  // Build title with filter information
+  let title = `השוואת הרשויות במדד ${metricLabel} (${valueUnit}) בשנת ${year}`;
+  if (filters?.ageGroup && filters.ageGroup !== 'none') {
+    const ageLabels: Record<string, string> = {
+      '0_4': '0-4', '5_9': '5-9', '10_14': '10-14', '15_19': '15-19',
+      '20_29': '20-29', '30_44': '30-44', '45_59': '45-59', '60_64': '60-64', '65_plus': '65+'
+    };
+    title += ` - קבוצת גיל: ${ageLabels[filters.ageGroup] || filters.ageGroup}`;
+  }
+  if (filters?.gender && filters.gender !== 'none') {
+    const genderLabels: Record<string, string> = { 'men': 'גברים', 'women': 'נשים' };
+    title += ` - מגדר: ${genderLabels[filters.gender] || filters.gender}`;
+  }
 
   return (
     <BarChartCard
