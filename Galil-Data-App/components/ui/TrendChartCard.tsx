@@ -266,7 +266,7 @@ export default function TrendChartCard({
       </CardContent>
     </Card>
   ) : (
-    <div dir="rtl" className={["w-full", className].filter(Boolean).join(" ")}>
+    <div dir="rtl" className={["w-full relative", className].filter(Boolean).join(" ")}>
       <div className="space-y-1 mb-2">
         <div className="text-base md:text-lg leading-snug font-bold text-foreground">{title}</div>
         {subtitle && (
@@ -275,7 +275,7 @@ export default function TrendChartCard({
       </div>
 
       {/* legend */}
-      <div className="flex flex-wrap items-center justify-end gap-4 text-xs text-muted-foreground mb-3">
+      <div className="flex flex-wrap items-center justify-end gap-4 text-xs text-muted-foreground mb-3 absolute top-12 right-0">
         {series.map((s, idx) => (
           <div key={s.name} className="flex items-center gap-2">
             <span
