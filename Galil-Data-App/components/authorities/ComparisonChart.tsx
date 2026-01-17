@@ -35,7 +35,7 @@ export default function ComparisonChart({ filters }: { filters?: { domain?: stri
       try {
         const params = new URLSearchParams();
         params.set('year', String(year));
-        params.set('limit', '20'); // Allow more results for scrolling
+        params.set('limit', '9'); // Show 9 bars initially with scrolling for more
         if (metric) params.set('metric', metric);
         if (filters?.search) params.set('search', filters.search);
         if (filters?.ageGroup) params.set('ageGroup', filters.ageGroup);
@@ -121,7 +121,7 @@ export default function ComparisonChart({ filters }: { filters?: { domain?: stri
     <div className="w-full">
       <div className="py-1 mb-2 text-base font-bold text-foreground">{title}</div>
       <div className="w-full overflow-x-auto">
-        <div className="min-w-[800px]"> {/* Minimum width to ensure scrolling when needed */}
+        <div className="min-w-[1200px]"> {/* Minimum width for 9 bars with proper label spacing */}
           <BarChartCard
             title=""
             xLabel="רשות"

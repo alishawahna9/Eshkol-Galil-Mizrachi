@@ -138,11 +138,12 @@ export default function BarChartCard({
       x: {
         grid: { display: false },
         ticks: {
-          maxRotation: 0,
+          maxRotation: 45,
           minRotation: 0,
-          padding: 10,
-          font: { size: 12 },
+          padding: 15,
+          font: { size: 11 },
           color: chartColors.tick,
+          autoSkip: false,
         },
         title: {
           display: true,
