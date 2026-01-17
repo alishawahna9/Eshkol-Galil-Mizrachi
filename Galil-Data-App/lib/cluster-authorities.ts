@@ -15,6 +15,7 @@ const CLUSTER_AUTHORITY_NAMES = [
   "יסוד המעלה",
   "מבואות החרמון",
   "מגדל שמס",
+  "מג'דל שמס", // Alternative spelling in CSV files
   "מטולה",
   "מסעדה",
   "מרום הגליל",
@@ -36,9 +37,9 @@ const CLUSTER_AUTHORITY_NAMES = [
  */
 export async function getAuthoritiesOfTheEasternGalilee(): Promise<number[]> {
   const clusterRows = await prisma.authorityGeneralInfo.findMany({
-    select: { symbol: true },
+    select: { symbol: true, name: true },
     where: { name: { in: CLUSTER_AUTHORITY_NAMES } },
   });
-  
+
   return clusterRows.map((r) => r.symbol);
 }

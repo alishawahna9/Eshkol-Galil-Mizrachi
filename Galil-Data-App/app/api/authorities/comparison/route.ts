@@ -21,7 +21,7 @@ export async function GET(request: Request) {
         distinct: ["year"],
         orderBy: { year: "desc" },
       });
-      
+
       return NextResponse.json(
         { error: "Invalid year", availableYears: availableYears.map(y => y.year) },
         { status: 400 }

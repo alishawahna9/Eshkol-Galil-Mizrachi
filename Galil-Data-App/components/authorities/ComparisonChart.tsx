@@ -22,7 +22,7 @@ export default function ComparisonChart({ filters }: { filters?: { domain?: stri
     : 2023;
   const valueType = (filters?.valueType || searchParams?.get("valueType") || "number") as "number" | "percent";
   const metric = filters?.metric || searchParams?.get("metric") || "total_population";
-  
+
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,22 +31,23 @@ export default function ComparisonChart({ filters }: { filters?: { domain?: stri
     const fetchData = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
         const params = new URLSearchParams();
         params.set('year', String(year));
-        params.set('limit', '9'); // Show 9 bars initially with scrolling for more
+        params.set('limit', '18'); // Show all available Eastern Galilee authorities
         if (metric) params.set('metric', metric);
         if (filters?.search) params.set('search', filters.search);
         if (filters?.ageGroup) params.set('ageGroup', filters.ageGroup);
         if (filters?.gender) params.set('gender', filters.gender);
+
         const response = await fetch(`/api/authorities/comparison?${params.toString()}`);
-        
+
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.error || `HTTP ${response.status}`);
         }
-        
+
         const data = await response.json();
 
         if (Array.isArray(data) && data.length > 0) {
@@ -118,10 +119,10 @@ export default function ComparisonChart({ filters }: { filters?: { domain?: stri
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full h-full">
       <div className="py-1 mb-2 text-base font-bold text-foreground">{title}</div>
-      <div className="w-full overflow-x-auto">
-        <div className="min-w-[1200px]"> {/* Minimum width for 9 bars with proper label spacing */}
+      <div className="w-full overflow-x-auto h-full">
+        <div className="min-w-[1500px]"> {/* Minimum width for 18 bars with proper label spacing */}
           <BarChartCard
             title=""
             xLabel="רשות"
@@ -131,7 +132,7 @@ export default function ComparisonChart({ filters }: { filters?: { domain?: stri
             tickStep={valueType === "percent" ? 10 : 2000}
             variant="bare"
             cardClassName="w-full"
-            cardContentClassName="h-80 p-2"
+            cardContentClassName="h-120 p-2"
           />
         </div>
       </div>
