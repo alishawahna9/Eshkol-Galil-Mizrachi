@@ -6,18 +6,6 @@ import BarChartCard from "@/components/authorities/BarChartCard";
 
 type Row = { label: string; value: number };
 
-// Fallback data in case DB fetch fails
-const fallbackRows: Row[] = [
-  { label: "צפת", value: 39179 },
-  { label: "קריית שמונה", value: 24254 },
-  { label: "גולן", value: 21484 },
-  { label: "הגליל העליון", value: 20881 },
-  { label: "מרום הגליל", value: 16846 },
-  { label: "מגדל שמס", value: 11235 },
-  { label: "חצור הגלילית", value: 11061 },
-  { label: "מבואות החרמון", value: 8827 },
-  { label: "קצרין", value: 8043 },
-];
 
 const METRIC_LABELS: Record<string, string> = {
   total_population: "אוכלוסיה",
@@ -47,6 +35,7 @@ export default function ComparisonChart({ filters }: { filters?: { domain?: stri
       try {
         const params = new URLSearchParams();
         params.set('year', String(year));
+        params.set('limit', '20'); // Allow more results for scrolling
         if (metric) params.set('metric', metric);
         if (filters?.search) params.set('search', filters.search);
         if (filters?.ageGroup) params.set('ageGroup', filters.ageGroup);
@@ -59,15 +48,15 @@ export default function ComparisonChart({ filters }: { filters?: { domain?: stri
         }
         
         const data = await response.json();
-        
+
         if (Array.isArray(data) && data.length > 0) {
           setRows(data);
         } else {
-          setRows(fallbackRows);
+          setRows([]);
         }
       } catch (err) {
         setError(String(err));
-        setRows(fallbackRows);
+        setRows([]);
       } finally {
         setLoading(false);
       }
@@ -90,8 +79,8 @@ export default function ComparisonChart({ filters }: { filters?: { domain?: stri
     return rows;
   }, [rows, valueType]);
 
-  // Sort by value ascending for display
-  const sorted = [...transformedRows].sort((a, b) => a.value - b.value);
+  // Sort by value descending for display (biggest bars on the left)
+  const sorted = [...transformedRows].sort((a, b) => b.value - a.value);
 
   if (loading) {
     return (
@@ -129,14 +118,23 @@ export default function ComparisonChart({ filters }: { filters?: { domain?: stri
   }
 
   return (
-    <BarChartCard
-      title={title}
-      xLabel="רשות"
-      yLabel={yLabel}
-      rows={sorted}
-      valueKind={valueKind}
-      tickStep={valueType === "percent" ? 10 : 2000}
-      variant="bare"
-    />
+    <div className="w-full">
+      <div className="py-1 mb-2 text-base font-bold text-foreground">{title}</div>
+      <div className="w-full overflow-x-auto">
+        <div className="min-w-[800px]"> {/* Minimum width to ensure scrolling when needed */}
+          <BarChartCard
+            title=""
+            xLabel="רשות"
+            yLabel={yLabel}
+            rows={sorted}
+            valueKind={valueKind}
+            tickStep={valueType === "percent" ? 10 : 2000}
+            variant="bare"
+            cardClassName="w-full"
+            cardContentClassName="h-80 p-2"
+          />
+        </div>
+      </div>
+    </div>
   );
 }

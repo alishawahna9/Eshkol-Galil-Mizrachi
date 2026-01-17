@@ -27,7 +27,6 @@ const parseStrictNumber = (val: any): number => {
 };
 
 async function main() {
-  //return console.log("seeding implemented no need to run again");
   // --- 1. SEED: AuthorityGeneralInfo ---
   const generalCsvPath = path.resolve(__dirname, "./authorities_general.csv");
 
@@ -40,28 +39,28 @@ async function main() {
 
     console.log(`🚀 Seeding General Info: ${rows.length} records`);
 
-    for (const row of rows) {
-      const data = {
-        name: row[0],
-        symbol: Math.floor(parseStrictNumber(row[1])),
-        district: row[2] || "Unknown",
-        municipalStatus: row[3] || "Unknown",
-        distanceFromTelAviv: parseStrictNumber(row[4]),
-        establishedYear: row[5] ? String(row[5]) : "N/A",
-        coastalStatus: row[6] === "1",
-        councilMembersCount: Math.floor(parseStrictNumber(row[7])),
-        planningCommitteeId: Math.floor(parseStrictNumber(row[8])),
-        planningCommitteeName: row[9] || "Unknown",
-        area: parseStrictNumber(row[10]),
-      };
-      await (prisma.authorityGeneralInfo as any).upsert({
-        where: {symbol: data.symbol},
-        update: data,
-        create: data,
-      });
+    const generalRecords = rows.map((row: any) => ({
+      name: row[0],
+      symbol: Math.floor(parseStrictNumber(row[1])),
+      district: row[2] || "Unknown",
+      municipalStatus: row[3] || "Unknown",
+      distanceFromTelAviv: parseStrictNumber(row[4]),
+      establishedYear: row[5] ? String(row[5]) : "N/A",
+      coastalStatus: row[6] === "1",
+      councilMembersCount: Math.floor(parseStrictNumber(row[7])),
+      planningCommitteeId: Math.floor(parseStrictNumber(row[8])),
+      planningCommitteeName: row[9] || "Unknown",
+      area: parseStrictNumber(row[10]),
+    }));
 
-      // store canonical name by symbol
-      symbolToName.set(data.symbol, data.name);
+    await (prisma.authorityGeneralInfo as any).createMany({
+      data: generalRecords,
+      skipDuplicates: true,
+    });
+
+    // store canonical name by symbol
+    for (const record of generalRecords) {
+      symbolToName.set(record.symbol, record.name);
     }
   }
 
@@ -72,11 +71,12 @@ async function main() {
     const rows = parse(content, {columns: false, skip_empty_lines: true, bom: true}).slice(1);
 
     console.log(`🚀 Seeding Demographics: ${rows.length} records`);
-    for (const row of rows) {
+
+    const demoRecords = rows.map((row: any) => {
       const symbol = Math.floor(parseStrictNumber(row[1]));
       const canonicalName = symbolToName.get(symbol) || String(row[0]);
 
-      const data = {
+      return {
         name: canonicalName,
         symbol,
         age_0_4: parseStrictNumber(row[2]),
@@ -102,12 +102,12 @@ async function main() {
         men: parseStrictNumber(row[22]),
         women: parseStrictNumber(row[23]),
       };
-      await (prisma.authorityDemographics as any).upsert({
-        where: {symbol: data.symbol},
-        update: data,
-        create: data,
-      });
-    }
+    });
+
+    await (prisma.authorityDemographics as any).createMany({
+      data: demoRecords,
+      skipDuplicates: true,
+    });
   }
 
   // --- 3. SEED: PopulationData ---
@@ -124,12 +124,20 @@ async function main() {
 
     const records: Array<{ authority: string; year: number; population: number }> = [];
 
+    // For Eastern Galilee project, allow all population data even if no general info
+    // This ensures we don't lose any population statistics
+    const allowedAuthorities = new Set([
+      ...Array.from(canonicalNames),
+      "גוש חלב (ג'יש)", "טובא - זנגרייה", "יסוד המעלה", "עין קיניה", "קרית שמונה", "ראש פינה",
+      "מגדל שמס", "בוקעאתא", "ע'ג'ר" // Added authorities
+    ]);
+
     for (const row of dataRows) {
       const authority = String(row[0] || "").trim();
       if (!authority || authority === "סך הכל") continue; // לדלג על שורת סיכום
-      if (!canonicalNames.has(authority)) {
+      if (!allowedAuthorities.has(authority)) {
         missingAuthorities.add(authority);
-        continue; // skip authorities that don't match general info names
+        continue; // skip authorities not in our allowed list
       }
       for (let i = 1; i < header.length && i < row.length; i++) {
         const year = parseInt(String(header[i]), 10);
