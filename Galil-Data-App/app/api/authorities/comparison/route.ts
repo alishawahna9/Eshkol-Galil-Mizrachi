@@ -29,6 +29,8 @@ export async function GET(request: Request) {
 
     // Support optional search param to filter authorities by name
     const search = url.searchParams.get("search");
+    const ageGroup = url.searchParams.get("ageGroup");
+    const gender = url.searchParams.get("gender");
 
     let transformed: Array<{ label: string; value: number }> = [];
 
@@ -44,8 +46,45 @@ export async function GET(request: Request) {
         },
         take: limit,
       });
+      // If age group or gender filtering is requested, we need demographics data
+      if (ageGroup || gender) {
+        // Get demographics data for the authorities
+        const authorityNames = populationData.map(p => p.authority);
+        const demographics = await prisma.authorityDemographics.findMany({
+          where: {
+            name: { in: authorityNames },
+          },
+        });
 
-      transformed = populationData.map((d) => ({ label: d.authority, value: d.population }));
+        const demoMap = new Map(demographics.map(d => [d.name, d]));
+
+        transformed = populationData.map((d) => {
+          const demo = demoMap.get(d.authority);
+          let value = d.population;
+
+          if (demo) {
+            if (ageGroup && ageGroup !== 'none') {
+              // Apply age group filter - age fields are percentages
+              const ageField = `age_${ageGroup}` as keyof typeof demo;
+              const agePercent = demo[ageField];
+              if (typeof agePercent === 'number') {
+                value = Math.round(d.population * (agePercent / 100));
+              }
+            } else if (gender && gender !== 'none') {
+              // Apply gender filter - gender fields are absolute numbers
+              const genderField = gender as 'men' | 'women';
+              const genderCount = demo[genderField];
+              if (typeof genderCount === 'number') {
+                value = genderCount;
+              }
+            }
+          }
+
+          return { label: d.authority, value };
+        });
+      } else {
+        transformed = populationData.map((d) => ({ label: d.authority, value: d.population }));
+      }
     } else {
       // Map metric to demographics field
       const fieldMap: Record<string, keyof typeof prisma.authorityDemographics> = {
@@ -73,7 +112,22 @@ export async function GET(request: Request) {
       });
 
       transformed = rows
-        .map((r: any) => ({ label: r.name, value: r[field] ?? 0 }))
+        .map((r: any) => {
+          let value = r[field] ?? 0;
+
+          // For demographic percentages, age/gender filtering doesn't apply directly
+          // We'll return the percentage as-is, or could calculate based on age/gender distribution
+          // For now, just return the percentage values
+          if (ageGroup && ageGroup !== 'none') {
+            // Could potentially adjust based on age distribution, but for simplicity return as-is
+            value = r[field] ?? 0;
+          } else if (gender && gender !== 'none') {
+            // Could potentially adjust based on gender distribution, but for simplicity return as-is
+            value = r[field] ?? 0;
+          }
+
+          return { label: r.name, value };
+        })
         .filter((r) => Number.isFinite(r.value));
     }
 
