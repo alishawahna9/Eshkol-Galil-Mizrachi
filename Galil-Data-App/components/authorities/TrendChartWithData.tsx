@@ -16,7 +16,7 @@ export default function TrendChartWithData({ selectedAuthority, filters }: Props
   const searchParams = useSearchParams();
   const valueType = (filters?.valueType ?? searchParams?.get("valueType") ?? "number") as "number" | "percent";
   const metric = filters?.metric ?? searchParams?.get("metric") ?? "total_population";
-  
+
   const [series, setSeries] = useState<Series[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +25,7 @@ export default function TrendChartWithData({ selectedAuthority, filters }: Props
     const fetchData = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
         // Build query params
         const params = new URLSearchParams();
@@ -33,13 +33,14 @@ export default function TrendChartWithData({ selectedAuthority, filters }: Props
         params.set("endYear", "2023");
 
         const effectiveMetric = metric;
-        const effectiveDomain = filters?.domain ?? searchParams.get("domain");
-        const effectiveSearch = filters?.search ?? searchParams.get("search");
+        const effectiveDomain = filters?.domain ?? searchParams?.get("domain");
+        const effectiveSearch = filters?.search ?? searchParams?.get("search");
 
         if (effectiveMetric) params.set("metric", effectiveMetric);
         if (effectiveDomain) params.set("domain", effectiveDomain);
+
         if (effectiveSearch) params.set("search", effectiveSearch);
-        
+
         // If a specific authority is selected, fetch only that one
         if (selectedAuthority) {
           params.set("authorities", selectedAuthority);
@@ -47,22 +48,22 @@ export default function TrendChartWithData({ selectedAuthority, filters }: Props
           // Otherwise, fetch top 10 authorities by default
           params.set("limit", "10");
         }
-        
+
         const response = await fetch(`/api/authorities/trend?${params.toString()}`);
-        
+
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.error || `HTTP ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         if (Array.isArray(data)) {
           // If valueType is percent, convert values to percentages
           if (valueType === "percent" && data.length > 0) {
             // Calculate total for each year across all series
             const yearTotals = new Map<number, number>();
-            
+
             data.forEach((s: Series) => {
               s.points.forEach((p) => {
                 const year = typeof p.x === "string" ? parseInt(p.x, 10) : p.x;
@@ -70,7 +71,7 @@ export default function TrendChartWithData({ selectedAuthority, filters }: Props
                 yearTotals.set(year, current + p.y);
               });
             });
-            
+
             // Convert to percentages
             const convertedData = data.map((s: Series) => ({
               ...s,
@@ -83,7 +84,7 @@ export default function TrendChartWithData({ selectedAuthority, filters }: Props
                 };
               }),
             }));
-            
+
             setSeries(convertedData);
           } else {
             setSeries(data);
