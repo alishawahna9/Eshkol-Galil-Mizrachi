@@ -33,7 +33,7 @@ export default function AuthorityTabs({ tableComponent, onSelectAuthority, selec
 
         {/* ✅ TREND TAB */}
         {active === "trend" && (
-          <TrendTabPanel selectedAuthority={selectedAuthority} />
+          <TrendTabPanel selectedAuthority={selectedAuthority} filters={filters} />
         )}
 
         {/* ✅ TREND UNIFIED TAB */}
