@@ -13,10 +13,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, SlidersHorizontal, Users, RotateCcw } from "lucide-react";
+import { SlidersHorizontal, Users, RotateCcw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// הגדרת המדדים: Key = שם השדה בטבלה, Label = מה רואה המשתמש
+// Metrics: Key = column name, Label = user label
 const METRICS = [
   { key: "total_population", label: "אוכלוסיה" },
   { key: "jews_and_others", label: "אוכלוסיה – יהודים ואחרים" },
@@ -54,15 +54,26 @@ type Filters = {
   valueType?: string;
 };
 
-export function SideFilterPanel({ onFiltersChange, activeTab }: { onFiltersChange?: (f: Filters) => void; activeTab?: string }) {
+export function SideFilterPanel({
+  onFiltersChange,
+  activeTab,
+}: {
+  onFiltersChange?: (f: Filters) => void;
+  activeTab?: string;
+}) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
   const [search, setSearch] = useState<string>("");
   const [metricKey, setMetricKey] = useState<string>(METRICS[0].key);
   const [year, setYear] = useState<string>(searchParams?.get("year") ?? "none");
-  const [ageGroup, setAgeGroup] = useState<string>(searchParams?.get("ageGroup") ?? "none");
-  const [gender, setGender] = useState<string>(searchParams?.get("gender") ?? "none");
+  const [ageGroup, setAgeGroup] = useState<string>(
+    searchParams?.get("ageGroup") ?? "none"
+  );
+  const [gender, setGender] = useState<string>(
+    searchParams?.get("gender") ?? "none"
+  );
+
   const valueType = "number";
   const [view, setView] = useState<"population" | "filters">("filters");
 
@@ -71,50 +82,67 @@ export function SideFilterPanel({ onFiltersChange, activeTab }: { onFiltersChang
     [metricKey]
   );
 
+  // ✅ CHANGE (EN): Detect the Unified Trend tab.
+  // When activeTab === "trendUnified", we will show ONLY Year filtering,
+  // and we will hide all other controls (including "Search Authority").
+  const isUnifiedTrendTab = activeTab === "trendUnified";
+
   function updateQueryParam(key: string, value: string) {
     const next = new URLSearchParams(searchParams?.toString() || "");
-    if (value) {
-      next.set(key, value);
-    } else {
-      next.delete(key);
-    }
+    if (value) next.set(key, value);
+    else next.delete(key);
+
     router.replace(`${window.location.pathname}?${next.toString()}`, {
       scroll: false,
     });
   }
 
   function clearAll() {
+    // ✅ CHANGE (EN): Clear ALL local states.
     setSearch("");
     setMetricKey(METRICS[0].key);
     setYear("none");
     setAgeGroup("none");
     setGender("none");
+
+    // ✅ Keep existing URL cleanup behavior
     router.replace(window.location.pathname, { scroll: false });
   }
-
-  // Handle tab switching when on trend - reset to first enabled tab
-  useEffect(() => {
-    if (activeTab === "trend") {
-      // When switching to trend tab, ensure we don't stay on disabled tabs
-      // The Tabs component should handle this automatically, but let's make sure
-      // by temporarily forcing a re-render or ensuring the default behavior
-    }
-  }, [activeTab]);
 
   // Notify parent on change with a short debounce
   useEffect(() => {
     const id = setTimeout(() => {
-      onFiltersChange?.({
-        search,
-        metric: metricKey,
-        year,
-        ageGroup,
-        gender,
-        valueType,
-      });
+      // ✅ CHANGE (EN): In "Unified Trend" tab, send ONLY year + fixed metric/valueType.
+      // This ensures unified chart is driven only by year selection.
+      if (isUnifiedTrendTab) {
+        onFiltersChange?.({
+          year,
+          metric: "total_population",
+          valueType: "number",
+        });
+      } else {
+        onFiltersChange?.({
+          search,
+          metric: metricKey,
+          year,
+          ageGroup,
+          gender,
+          valueType,
+        });
+      }
     }, 100);
+
     return () => clearTimeout(id);
-  }, [search, metricKey, year, ageGroup, gender, valueType, onFiltersChange]);
+  }, [
+    isUnifiedTrendTab, // ✅ CHANGE (EN)
+    search,
+    metricKey,
+    year,
+    ageGroup,
+    gender,
+    valueType,
+    onFiltersChange,
+  ]);
 
   return (
     <div className="p-0">
@@ -170,163 +198,235 @@ export function SideFilterPanel({ onFiltersChange, activeTab }: { onFiltersChang
 
         <CardContent className="space-y-7 pt-0">
           {view === "population" ? (
-            <MetricSummaryPanel metricKey={selectedMetric.key} metricLabel={selectedMetric.label} />
+            <MetricSummaryPanel
+              metricKey={selectedMetric.key}
+              metricLabel={selectedMetric.label}
+            />
           ) : (
             <>
-              <div className="space-y-2">
-                <label className="text-sm font-medium dark:text-slate-300">חיפוש רשות</label>
-                <Input
-                  value={search}
-                  onChange={(e) => setSearch((e.target as HTMLInputElement).value)}
-                  placeholder="חיפוש"
-                  className="h-11 text-base"
-                />
-              </div>
+              {/* ✅ CHANGE (EN): Hide "Search Authority" on Unified Trend tab */}
+              {!isUnifiedTrendTab && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium dark:text-slate-300">
+                    חיפוש רשות
+                  </label>
+                  <Input
+                    value={search}
+                    onChange={(e) =>
+                      setSearch((e.target as HTMLInputElement).value)
+                    }
+                    placeholder="חיפוש"
+                    className="h-11 text-base"
+                  />
+                </div>
+              )}
 
-              {activeTab !== "trend" && (
-                <Tabs defaultValue="years" className="w-full" dir="rtl">
-                  <TabsList className="grid grid-cols-3 gap-2 mb-5 bg-transparent p-0">
-                    <TabsTrigger
-                      value="years"
-                      className="rounded-full text-base px-4 py-2.5 transition-all text-slate-500 dark:text-slate-400 border border-transparent hover:border-slate-300 dark:hover:border-slate-600 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:border-blue-600 data-[state=active]:shadow-lg"
-                    >
-                      שנים
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="population"
-                      className="rounded-full text-base px-4 py-2.5 transition-all text-slate-500 dark:text-slate-400 border border-transparent hover:border-slate-300 dark:hover:border-slate-600 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:border-blue-600 data-[state=active]:shadow-lg"
-                    >
-                      אוכלוסייה
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="group"
-                      className="rounded-full text-base px-4 py-2.5 transition-all text-slate-500 dark:text-slate-400 border border-transparent hover:border-slate-300 dark:hover:border-slate-600 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:border-blue-600 data-[state=active]:shadow-lg"
-                    >
-                      גיל ומין
-                    </TabsTrigger>
-                  </TabsList>
+              {/* ✅ CHANGE (EN):
+                  - For Unified Trend tab: show ONLY Year selection (no Tabs, no population/group filters).
+                  - For other tabs: keep the original UI unchanged.
+              */}
+              {isUnifiedTrendTab ? (
+                <div className="space-y-3">
+                  <div className="text-sm font-semibold dark:text-slate-200">
+                    סינון לפי שנים
+                  </div>
 
-                  <TabsContent value="years" className="space-y-3">
-                    <div className="text-sm font-semibold dark:text-slate-200">סינון לפי שנים</div>
-                    <Select
-                      value={year}
-                      onValueChange={(v) => {
-                        setYear(v);
-                        // כאשר משנים שנה, בטל סינונים של אוכלוסיה/גיל/מין
-                        if (v !== "none") {
-                          setAgeGroup("none");
-                          setGender("none");
-                          setMetricKey(METRICS[0].key);
-                          updateQueryParam("year", v);
-                          updateQueryParam("ageGroup", "");
-                          updateQueryParam("gender", "");
-                        } else {
-                          updateQueryParam("year", "");
-                        }
-                      }}
-                    >
-                      <SelectTrigger className="w-full justify-between text-right h-11 text-base">
-                        <SelectValue placeholder="בחר שנה" />
-                      </SelectTrigger>
-                      <SelectContent position="popper" align="end">
-                        <SelectItem value="none" className="text-right font-semibold">
-                          ללא סינון (כל השנים)
+                  <Select
+                    value={year}
+                    onValueChange={(v) => {
+                      setYear(v);
+
+                      // ✅ CHANGE (EN): Update ONLY "year" query param for unified trend.
+                      updateQueryParam("year", v === "none" ? "" : v);
+                    }}
+                  >
+                    <SelectTrigger className="w-full justify-between text-right h-11 text-base">
+                      <SelectValue placeholder="בחר שנה" />
+                    </SelectTrigger>
+                    <SelectContent position="popper" align="end">
+                      <SelectItem
+                        value="none"
+                        className="text-right font-semibold"
+                      >
+                        ללא סינון (כל השנים)
+                      </SelectItem>
+                      {YEARS.map((y) => (
+                        <SelectItem key={y} value={y} className="text-right">
+                          {y}
                         </SelectItem>
-                        {YEARS.map((y) => (
-                          <SelectItem key={y} value={y} className="text-right">
-                            {y}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TabsContent>
-
-                  <TabsContent value="population" className="space-y-3">
-                    <div className="text-sm font-semibold dark:text-slate-200">סינון לפי אוכלוסיה</div>
-                    <div className="space-y-2 text-sm">
-                      {METRICS.map((metric) => (
-                        <label key={metric.key} className="flex items-center gap-2 cursor-pointer dark:text-slate-300">
-                          <input
-                            type="radio"
-                            name="metric"
-                            value={metric.key}
-                            checked={metricKey === metric.key}
-                            onChange={() => {
-                              setMetricKey(metric.key);
-                              // כאשר משנים אוכלוסיה, בטל סינון שנה (אבל לא גיל או מגדר)
-                              setYear("none");
-                              updateQueryParam("year", "");
-                            }}
-                          />
-                          <span>{metric.label}</span>
-                        </label>
                       ))}
-                    </div>
-                  </TabsContent>
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                // ✅ Keep original behavior for all other tabs
+                activeTab !== "trend" && (
+                  <Tabs defaultValue="years" className="w-full" dir="rtl">
+                    <TabsList className="grid grid-cols-3 gap-2 mb-5 bg-transparent p-0">
+                      <TabsTrigger
+                        value="years"
+                        className="rounded-full text-base px-4 py-2.5 transition-all text-slate-500 dark:text-slate-400 border border-transparent hover:border-slate-300 dark:hover:border-slate-600 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:border-blue-600 data-[state=active]:shadow-lg"
+                      >
+                        שנים
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="population"
+                        className="rounded-full text-base px-4 py-2.5 transition-all text-slate-500 dark:text-slate-400 border border-transparent hover:border-slate-300 dark:hover:border-slate-600 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:border-blue-600 data-[state=active]:shadow-lg"
+                      >
+                        אוכלוסייה
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="group"
+                        className="rounded-full text-base px-4 py-2.5 transition-all text-slate-500 dark:text-slate-400 border border-transparent hover:border-slate-300 dark:hover:border-slate-600 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:border-blue-600 data-[state=active]:shadow-lg"
+                      >
+                        גיל ומין
+                      </TabsTrigger>
+                    </TabsList>
 
-                  <TabsContent value="group" className="space-y-3">
-                    <div className="text-sm font-semibold dark:text-slate-200">סינון לפי קבוצה</div>
-                    <div className="grid gap-3 sm:grid-cols-2">
+                    <TabsContent value="years" className="space-y-3">
+                      <div className="text-sm font-semibold dark:text-slate-200">
+                        סינון לפי שנים
+                      </div>
                       <Select
-                        value={ageGroup}
+                        value={year}
                         onValueChange={(v) => {
-                          setAgeGroup(v);
-                          // כאשר משנים גיל, בטל סינון שנה (אבל לא מינים או אוכלוסיה)
+                          setYear(v);
                           if (v !== "none") {
-                            setYear("none");
-                            updateQueryParam("ageGroup", v);
-                            updateQueryParam("year", "");
-                          } else {
+                            setAgeGroup("none");
+                            setGender("none");
+                            setMetricKey(METRICS[0].key);
+                            updateQueryParam("year", v);
                             updateQueryParam("ageGroup", "");
-                          }
-                        }}
-                      >
-                        <SelectTrigger className="w-full justify-between text-right h-11 text-base">
-                          <SelectValue placeholder="בחר קבוצת גיל" />
-                        </SelectTrigger>
-                        <SelectContent position="popper" align="end">
-                          <SelectItem value="none" className="text-right font-semibold">
-                            ללא סינון (כל הגילאים)
-                          </SelectItem>
-                          {AGE_GROUPS.map((ag) => (
-                            <SelectItem key={ag.value} value={ag.value} className="text-right">
-                              {ag.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-
-                      <Select
-                        value={gender}
-                        onValueChange={(v) => {
-                          setGender(v);
-                          // כאשר משנים מגדר, בטל סינון שנה (אבל לא גיל או אוכלוסיה)
-                          if (v !== "none") {
-                            setYear("none");
-                            updateQueryParam("gender", v);
-                            updateQueryParam("year", "");
-                          } else {
                             updateQueryParam("gender", "");
+                          } else {
+                            updateQueryParam("year", "");
                           }
                         }}
                       >
                         <SelectTrigger className="w-full justify-between text-right h-11 text-base">
-                          <SelectValue placeholder="בחר מגדר" />
+                          <SelectValue placeholder="בחר שנה" />
                         </SelectTrigger>
                         <SelectContent position="popper" align="end">
-                          <SelectItem value="none" className="text-right font-semibold">
-                            ללא סינון (כולם)
+                          <SelectItem
+                            value="none"
+                            className="text-right font-semibold"
+                          >
+                            ללא סינון (כל השנים)
                           </SelectItem>
-                          {GENDERS.map((g) => (
-                            <SelectItem key={g.value} value={g.value} className="text-right">
-                              {g.label}
+                          {YEARS.map((y) => (
+                            <SelectItem key={y} value={y} className="text-right">
+                              {y}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                    </div>
-                  </TabsContent>
-                </Tabs>
+                    </TabsContent>
+
+                    <TabsContent value="population" className="space-y-3">
+                      <div className="text-sm font-semibold dark:text-slate-200">
+                        סינון לפי אוכלוסיה
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        {METRICS.map((metric) => (
+                          <label
+                            key={metric.key}
+                            className="flex items-center gap-2 cursor-pointer dark:text-slate-300"
+                          >
+                            <input
+                              type="radio"
+                              name="metric"
+                              value={metric.key}
+                              checked={metricKey === metric.key}
+                              onChange={() => {
+                                setMetricKey(metric.key);
+                                setYear("none");
+                                updateQueryParam("year", "");
+                              }}
+                            />
+                            <span>{metric.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="group" className="space-y-3">
+                      <div className="text-sm font-semibold dark:text-slate-200">
+                        סינון לפי קבוצה
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <Select
+                          value={ageGroup}
+                          onValueChange={(v) => {
+                            setAgeGroup(v);
+                            if (v !== "none") {
+                              setYear("none");
+                              updateQueryParam("ageGroup", v);
+                              updateQueryParam("year", "");
+                            } else {
+                              updateQueryParam("ageGroup", "");
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-full justify-between text-right h-11 text-base">
+                            <SelectValue placeholder="בחר קבוצת גיל" />
+                          </SelectTrigger>
+                          <SelectContent position="popper" align="end">
+                            <SelectItem
+                              value="none"
+                              className="text-right font-semibold"
+                            >
+                              ללא סינון (כל הגילאים)
+                            </SelectItem>
+                            {AGE_GROUPS.map((ag) => (
+                              <SelectItem
+                                key={ag.value}
+                                value={ag.value}
+                                className="text-right"
+                              >
+                                {ag.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        <Select
+                          value={gender}
+                          onValueChange={(v) => {
+                            setGender(v);
+                            if (v !== "none") {
+                              setYear("none");
+                              updateQueryParam("gender", v);
+                              updateQueryParam("year", "");
+                            } else {
+                              updateQueryParam("gender", "");
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-full justify-between text-right h-11 text-base">
+                            <SelectValue placeholder="בחר מגדר" />
+                          </SelectTrigger>
+                          <SelectContent position="popper" align="end">
+                            <SelectItem
+                              value="none"
+                              className="text-right font-semibold"
+                            >
+                              ללא סינון (כולם)
+                            </SelectItem>
+                            {GENDERS.map((g) => (
+                              <SelectItem
+                                key={g.value}
+                                value={g.value}
+                                className="text-right"
+                              >
+                                {g.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                )
               )}
             </>
           )}
