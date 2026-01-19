@@ -14,9 +14,9 @@ datasource db {
 }
 
 model AuthorityGeneralInfo {
-  id                    Int      @id @default(autoincrement())
-  name                  String   @unique
-  symbol                Int      @unique
+  id                    Int                         @id @default(autoincrement())
+  name                  String                      @unique
+  symbol                Int                         @unique
   district              String
   municipalStatus       String
   distanceFromTelAviv   Float
@@ -26,15 +26,15 @@ model AuthorityGeneralInfo {
   planningCommitteeId   Int
   planningCommitteeName String
   area                  Float
-  // embedding             Unsupported("vector(768)")? // Temporarily disabled
+  embedding             Unsupported("vector(768)")?
 
-  // demographics   AuthorityDemographics[] // Temporarily disabled
-  // populationData PopulationData[] // Temporarily disabled
+  demographics AuthorityDemographics[]
+  //populationData PopulationData[]
 }
 
 model AuthorityDemographics {
-  id                   Int      @id @default(autoincrement())
-  symbol               Int      @unique
+  id                   Int                         @id @default(autoincrement())
+  symbol               Int                         @unique
   name                 String
   age_0_4              Float?
   age_5_9              Float?
@@ -58,10 +58,10 @@ model AuthorityDemographics {
   muslimsPercent       Float?
   christiansPercent    Float?
   druzePercent         Float?
-  // embedding            Unsupported("vector(768)")? // Temporarily disabled
+  embedding            Unsupported("vector(768)")?
 
   // --- חיבור לפי שם העיר ---
-  // generalInfo AuthorityGeneralInfo @relation(fields: [name], references: [name]) // Temporarily disabled
+  generalInfo AuthorityGeneralInfo @relation(fields: [name], references: [name]) // Temporarily disabled
 }
 
 model AuthorityPopulation {
@@ -75,11 +75,11 @@ model AuthorityPopulation {
 }
 
 model PopulationData {
-  id         Int    @id @default(autoincrement())
+  id         Int                         @id @default(autoincrement())
   authority  String
   year       Int
   population Int
-  // embedding  Unsupported("vector(768)")? // Temporarily disabled
+  embedding  Unsupported("vector(768)")? // Temporarily disabled
 
   // --- חיבור לפי שם העיר ---
   // generalInfo AuthorityGeneralInfo @relation(fields: [authority], references: [name]) // Temporarily disabled
