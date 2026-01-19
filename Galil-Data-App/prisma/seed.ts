@@ -114,7 +114,7 @@ async function main() {
   const popCsvPath = path.resolve(__dirname, "./population_data.csv");
   if (fs.existsSync(popCsvPath)) {
     const content = fs.readFileSync(popCsvPath, "utf-8");
-    const rows = parse(content, { columns: false, skip_empty_lines: true, bom: true });
+    const rows = parse(content, {columns: false, skip_empty_lines: true, bom: true});
     const header = rows[0] || [];
     const dataRows = rows.slice(1);
 
@@ -122,14 +122,21 @@ async function main() {
     const canonicalNames = new Set(Array.from(symbolToName.values()).map((s) => String(s).trim()));
     const missingAuthorities = new Set<string>();
 
-    const records: Array<{ authority: string; year: number; population: number }> = [];
+    const records: Array<{authority: string; year: number; population: number}> = [];
 
     // For Eastern Galilee project, allow all population data even if no general info
     // This ensures we don't lose any population statistics
     const allowedAuthorities = new Set([
       ...Array.from(canonicalNames),
-      "גוש חלב (ג'יש)", "טובא - זנגרייה", "יסוד המעלה", "עין קיניה", "קרית שמונה", "ראש פינה",
-      "מגדל שמס", "בוקעאתא", "ע'ג'ר" // Added authorities
+      "גוש חלב (ג'יש)",
+      "טובא - זנגרייה",
+      "יסוד המעלה",
+      "עין קיניה",
+      "קרית שמונה",
+      "ראש פינה",
+      "מגדל שמס",
+      "בוקעאתא",
+      "ע'ג'ר", // Added authorities
     ]);
 
     for (const row of dataRows) {
@@ -143,19 +150,22 @@ async function main() {
         const year = parseInt(String(header[i]), 10);
         if (isNaN(year)) continue;
         const population = Math.floor(parseStrictNumber(row[i]));
-        records.push({ authority, year, population });
+        records.push({authority, year, population});
       }
     }
 
     if (missingAuthorities.size > 0) {
-      console.warn(`⚠️ Skipping ${missingAuthorities.size} authorities from population CSV that have no matching general info. Examples:`, Array.from(missingAuthorities).slice(0,10));
+      console.warn(
+        `⚠️ Skipping ${missingAuthorities.size} authorities from population CSV that have no matching general info. Examples:`,
+        Array.from(missingAuthorities).slice(0, 10)
+      );
     }
 
     // to avoid huge single requests, insert in chunks
     const chunkSize = 1000;
     for (let i = 0; i < records.length; i += chunkSize) {
       const chunk = records.slice(i, i + chunkSize);
-      await prisma.populationData.createMany({ data: chunk, skipDuplicates: true });
+      await prisma.populationData.createMany({data: chunk, skipDuplicates: true});
     }
     console.log(`Inserted ${records.length} population records (duplicates skipped)`);
   }

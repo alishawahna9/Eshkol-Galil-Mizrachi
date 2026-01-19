@@ -9,9 +9,8 @@
     "lint": "eslint",
     "vectorize": "tsx scripts/sync-vectors.ts",
     "validate-keys": "tsx scripts/keys-check.ts",
-    "seed": "tsx prisma/seed.ts",
-    "predev": "npm run validate-keys && npx prisma generate && npx prisma db push && npm run seed",
-    "prebuild": "npx prisma generate && npx prisma db push && npm run seed"
+    "predev": "npm run validate-keys && npx prisma format && npx prisma generate && npm run vectorize",
+    "prebuild": "npm run validate-keys && npx prisma format && npx prisma generate && npm run vectorize"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
