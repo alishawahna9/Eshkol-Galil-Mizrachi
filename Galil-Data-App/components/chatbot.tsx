@@ -80,12 +80,12 @@ export default function Chatbot() {
     <div className="fixed bottom-25 left-25 z-50 flex flex-col items-start" dir="rtl">
       {/* Floating Toggle Button - Hidden when chat is open */}
       <Button
-        size="icon"
         onClick={() => setOpen(true)}
-        className={`h-16 w-16 rounded-full shadow-xl hover:scale-105 transition-all duration-200 bg-primary text-primary-foreground border-2 border-primary/20 ${
+        className={`h-16 px-4 rounded-full shadow-xl hover:scale-105 transition-all duration-200 bg-primary text-primary-foreground border-2 border-primary/20 flex items-center gap-2 ${
           open ? "scale-0 opacity-0 pointer-events-none" : "scale-100 opacity-100"
         }`}>
         <Bot className="size-10" />
+        <span className="text-sm font-semibold">Eshkol Galil Mizrachi Ai</span>
       </Button>
 
       {/* Chat Window Wrapper */}
