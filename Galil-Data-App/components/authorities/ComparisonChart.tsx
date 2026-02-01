@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
+import { useIsMobile } from "@/hooks/use-mobile";
 import BarChartCard from "@/components/authorities/BarChartCard";
 
 type Row = { label: string; value: number };
@@ -15,6 +16,7 @@ const METRIC_LABELS: Record<string, string> = {
 };
 
 export default function ComparisonChart({ filters }: { filters?: { domain?: string; search?: string; metric?: string; year?: string; valueType?: string; ageGroup?: string; gender?: string } }) {
+  const isMobile = useIsMobile();
   const searchParams = useSearchParams();
   const yearParam = filters?.year ?? searchParams?.get("year");
   const year = (yearParam && yearParam !== "none" && !isNaN(parseInt(yearParam, 10)))
@@ -82,6 +84,20 @@ export default function ComparisonChart({ filters }: { filters?: { domain?: stri
 
   // Sort by value descending for display (biggest bars on the left)
   const sorted = [...transformedRows].sort((a, b) => b.value - a.value);
+  if (isMobile) {
+    return (
+      <div className="flex items-center justify-center h-80">
+        <div className="flex flex-col items-center justify-center text-center">
+          <p className="text-lg font-semibold text-muted-foreground mb-2">
+            Charts not available on mobile
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Please use the desktop version to view the graphs
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

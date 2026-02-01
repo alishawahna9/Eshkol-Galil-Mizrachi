@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -67,6 +68,22 @@ export default function BarChartCard({
 }: Props) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <div className="flex items-center justify-center w-full h-full">
+        <div className="flex flex-col items-center justify-center text-center">
+          <p className="text-lg font-semibold text-muted-foreground mb-2">
+            Charts not available on mobile
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Please use the desktop version to view the graphs
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const labels = rows.map((r) => r.label);
   const values = rows.map((r) => r.value);

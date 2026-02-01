@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useIsMobile } from "@/hooks/use-mobile";
 import TrendChartCard from "@/components/ui/TrendChartCard";
 
 type Point = { x: number | string; y: number };
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export default function TrendChartWithData({ selectedAuthority, filters }: Props) {
+  const isMobile = useIsMobile();
   const searchParams = useSearchParams();
   const valueType = (filters?.valueType ?? searchParams?.get("valueType") ?? "number") as "number" | "percent";
   const metric = filters?.metric ?? searchParams?.get("metric") ?? "total_population";
@@ -113,6 +115,20 @@ export default function TrendChartWithData({ selectedAuthority, filters }: Props
 
     fetchData();
   }, [selectedAuthority, valueType, metric, filters?.domain, filters?.search, year]);
+  if (isMobile) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="flex flex-col items-center justify-center text-center">
+          <p className="text-lg font-semibold text-muted-foreground mb-2">
+            Charts not available on mobile
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Please use the desktop version to view the graphs
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (metric !== "total_population") {
     return (

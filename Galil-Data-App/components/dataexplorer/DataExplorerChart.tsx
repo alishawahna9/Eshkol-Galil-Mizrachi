@@ -1,4 +1,7 @@
+"use client";
+
 import BarChartCard from "@/components/authorities/BarChartCard";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   ValueKind,
   DataExplorerResult,
@@ -11,6 +14,23 @@ type Props = {
 };
 
 export default function DataExplorerChart({ result, valueKind, error }: Props) {
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <div className="h-full min-h-150 w-full rounded-xl flex items-center justify-center p-4">
+        <div className="flex flex-col items-center justify-center text-center">
+          <p className="text-lg font-semibold text-muted-foreground mb-2">
+            Charts not available on mobile
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Please use the desktop version to view the graphs
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full min-h-150 w-full rounded-xl flex p-4">
       {result ? (
